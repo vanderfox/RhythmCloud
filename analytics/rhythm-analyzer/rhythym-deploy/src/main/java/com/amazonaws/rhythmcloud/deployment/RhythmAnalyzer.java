@@ -1,3 +1,5 @@
+package com.amazonaws.rhythmcloud.deployment;
+
 import software.amazon.awscdk.core.App;
 
 public class RhythmAnalyzer extends App {

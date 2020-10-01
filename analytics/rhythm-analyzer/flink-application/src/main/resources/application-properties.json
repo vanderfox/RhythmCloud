@@ -8,7 +8,7 @@
       "ApplicationCodeConfiguration": {
         "CodeContent": {
           "S3ContentLocation": {
-            "BucketARN": "arn:aws:s3:::ciot-flink-application-dev",
+            "BucketARN": "",
             "FileKey": ""
           }
         },
