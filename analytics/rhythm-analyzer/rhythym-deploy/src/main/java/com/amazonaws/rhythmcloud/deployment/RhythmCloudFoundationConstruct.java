@@ -40,26 +40,26 @@ public class RhythmCloudFoundationConstruct extends Construct {
                 .retentionPeriodHours(24)
                 .build();
 
-        CfnOutput.Builder.create(this, "rhythm-artifacts-s3-bucket")
-                .exportName("rhythm-artifacts-s3-bucket")
+        CfnOutput.Builder.create(this, "rhythm-artifacts-s3-bucket-output")
+                .exportName("rhythm-artifacts-s3-bucket-output")
                 .description("Bucket containing all the Rhythm Cloud artifacts")
                 .value(rhythmCloudArtifactRepository.getBucketArn())
                 .build();
 
-        CfnOutput.Builder.create(this, "rhythm-analysis-output-stream")
-                .exportName("rhythm-analysis-output-stream")
+        CfnOutput.Builder.create(this, "rhythm-analysis-output-stream-output")
+                .exportName("rhythm-analysis-output-stream-output")
                 .description("Output Kinesis Stream ARN")
                 .value(rhythmCloudAnalysisOutputStream.getAttrArn())
                 .build();
 
-        CfnOutput.Builder.create(this, "rhythm-system-hit-stream")
-                .exportName("rhythm-system-hit-stream")
+        CfnOutput.Builder.create(this, "rhythm-system-hit-stream-output")
+                .exportName("rhythm-system-hit-stream-output")
                 .description("System Hit Kinesis Stream ARN")
                 .value(rhythmCloudSystemHitStream.getAttrArn())
                 .build();
 
-        CfnOutput.Builder.create(this, "rhythm-user-hit-stream")
-                .exportName("rhythm-user-hit-stream")
+        CfnOutput.Builder.create(this, "rhythm-user-hit-stream-output")
+                .exportName("rhythm-user-hit-stream-output")
                 .description("User Hit Kinesis Stream ARN")
                 .value(rhythmCloudUserHitStream.getAttrArn())
                 .build();

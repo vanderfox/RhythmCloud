@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TemporalAnalyzerConstruct extends Construct {
-    private final Policy rhythmAnalyzerPolicy;
+    private final ManagedPolicy rhythmAnalyzerPolicy;
     private final Role rhythmAnalyzerRole;
     private final CfnApplicationV2 rhythmAnalyzerApplication;
 
@@ -24,14 +24,14 @@ public class TemporalAnalyzerConstruct extends Construct {
                                      final TemporalAnalyzerProps props) {
         super(scope, id);
 
+        String content = String.format("%s/%s",
+                props.getRhythmCloudArtifactsBucket().getBucketArn(),
+                props.getContentPath());
         PolicyStatement s3ReadArtifactPolicy = PolicyStatement.Builder.create()
                 .sid("ReadCode")
                 .effect(Effect.ALLOW)
                 .actions(Arrays.asList("s3:GetObject", "s3:GetObjectVersion"))
-                .resources(Collections.singletonList(
-                        String.format("%s/%s",
-                                props.getRhythmCloudArtifactsBucket().getBucketArn(),
-                                props.getContentPath())))
+                .resources(Collections.singletonList(content))
                 .build();
 
         PolicyStatement kinesisMetadataReaderPolicyStatement = PolicyStatement.Builder.create()
@@ -74,8 +74,9 @@ public class TemporalAnalyzerConstruct extends Construct {
                 .assumedBy(new ServicePrincipal("kinesisanalytics.amazonaws.com"))
                 .build();
 
-        rhythmAnalyzerPolicy = Policy.Builder.create(this, "rhythm-cloud-analyzer-policy")
-                .policyName("rhythm-cloud-analyzer-policy")
+        rhythmAnalyzerPolicy = ManagedPolicy.Builder.create(this, "rhythm-cloud-analyzer-policy")
+                .managedPolicyName("rhythm-cloud-analyzer-policy")
+                .description("Managed policy for rhythym analyzer")
                 .statements(Arrays.asList(
                         s3ReadArtifactPolicy,
                         kinesisWriterPolicyStatement,
@@ -84,7 +85,7 @@ public class TemporalAnalyzerConstruct extends Construct {
                         cloudWatchAnalyzerPolicyStatement))
                 .build();
 
-        rhythmAnalyzerPolicy.attachToRole(rhythmAnalyzerRole);
+        rhythmAnalyzerRole.addManagedPolicy(rhythmAnalyzerPolicy);
 
         LogGroup rhythmAnalyzerLogGroup = LogGroup.Builder.create(this, "rhythm-analyzer-log-group")
                 .logGroupName("rhythm-analyzer-log-group")
@@ -92,7 +93,7 @@ public class TemporalAnalyzerConstruct extends Construct {
                 .build();
 
         CfnOutput.Builder.create(this, "rhythm-analyzer-log-group-output")
-                .exportName("rhythm-analyzer-log-group")
+                .exportName("rhythm-analyzer-log-group-output")
                 .description("Rhythm Analyzer Log Group")
                 .value(rhythmAnalyzerLogGroup.getLogGroupArn())
                 .build();
@@ -163,14 +164,13 @@ public class TemporalAnalyzerConstruct extends Construct {
                 .build();
 
         CfnOutput.Builder.create(this, "rhythm-analyzer-application-output")
-                .exportName("rhythm-analyzer-application")
+                .exportName("rhythm-analyzer-application-output")
                 .description("Rhythm Analyzer Application")
                 .value(rhythmAnalyzerApplication.getApplicationName())
                 .build();
-
     }
 
-    public Policy getRhythmAnalyzerPolicy() {
+    public ManagedPolicy getRhythmAnalyzerPolicy() {
         return rhythmAnalyzerPolicy;
     }
 
