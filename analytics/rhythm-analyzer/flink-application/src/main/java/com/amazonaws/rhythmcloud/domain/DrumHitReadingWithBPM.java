@@ -13,7 +13,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DrumHitReading implements Comparable<DrumHitReading> {
+public class DrumHitReadingWithBPM implements Comparable<DrumHitReadingWithBPM> {
     @JsonProperty("sessionId")
     private Long sessionId;
     @JsonProperty("drum")
@@ -22,9 +22,11 @@ public class DrumHitReading implements Comparable<DrumHitReading> {
     private Instant timestamp;
     @JsonProperty("voltage")
     private Double voltage;
+    @JsonProperty("bpm_ms")
+    private Long bpmInMilliSeconds;
 
     @Override
-    public int compareTo(DrumHitReading o) {
+    public int compareTo(DrumHitReadingWithBPM o) {
         Duration d = Duration.between(this.getTimestamp(), o.getTimestamp());
         if (d.toMillis() == 0)
             return 0;
