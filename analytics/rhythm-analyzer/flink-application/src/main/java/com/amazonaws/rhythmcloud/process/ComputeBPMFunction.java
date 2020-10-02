@@ -1,7 +1,8 @@
 package com.amazonaws.rhythmcloud.process;
 
-import com.amazonaws.rhythmcloud.domain.DrumHitReading;
+import com.amazonaws.rhythmcloud.Constants;
 import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithBPM;
+import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithType;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.configuration.Configuration;
@@ -11,9 +12,9 @@ import org.apache.flink.util.Collector;
 import java.time.Duration;
 import java.time.Instant;
 
-public class ComputeBPMFunction extends KeyedProcessFunction<Long, DrumHitReading, DrumHitReadingWithBPM> {
-    ValueState<Long> bpmInMilliSecondsState;
-    ValueState<Instant> lastMetronomeInstantState;
+public class ComputeBPMFunction extends KeyedProcessFunction<Long, DrumHitReadingWithType, DrumHitReadingWithBPM> {
+    ValueState<Long> bpmInMilliSecondsState = null;
+    ValueState<Instant> lastMetronomeInstantState = null;
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -28,10 +29,11 @@ public class ComputeBPMFunction extends KeyedProcessFunction<Long, DrumHitReadin
     }
 
     @Override
-    public void processElement(DrumHitReading drumHitReading, Context context, Collector<DrumHitReadingWithBPM> collector) throws Exception {
-        // Filter out the metronome
+    public void processElement(DrumHitReadingWithType drumHitReading, Context context, Collector<DrumHitReadingWithBPM> collector) throws Exception {
+        // Filter out the metronome which appears only in the system hit stream
         // Rather use it to compute beats per minute
-        if (drumHitReading.getDrum().equalsIgnoreCase("metronome")) {
+        if (drumHitReading.getType().equals(Constants.Stream.SYSTEMHIT) &&
+                drumHitReading.getDrum().equalsIgnoreCase("metronome")) {
             Instant lastMetronomeInstant = lastMetronomeInstantState.value();
             // Very first hit for this session
             if (lastMetronomeInstant == null) {
@@ -56,6 +58,7 @@ public class ComputeBPMFunction extends KeyedProcessFunction<Long, DrumHitReadin
                         drumHitReading.getDrum(),
                         drumHitReading.getTimestamp(),
                         drumHitReading.getVoltage(),
+                        drumHitReading.getType(),
                         bpmInMilliSecondsState.value());
                 collector.collect(drumHitReadingWithBPM);
             }

@@ -1,5 +1,6 @@
 package com.amazonaws.rhythmcloud.domain;
 
+import com.amazonaws.rhythmcloud.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,8 @@ public class DrumHitReadingWithBPM implements Comparable<DrumHitReadingWithBPM> 
     private Instant timestamp;
     @JsonProperty("voltage")
     private Double voltage;
+    @JsonProperty("type")
+    private Constants.Stream type;
     @JsonProperty("bpm_ms")
     private Long bpmInMilliSeconds;
 

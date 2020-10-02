@@ -1,5 +1,6 @@
 package com.amazonaws.rhythmcloud.domain;
 
+import com.amazonaws.rhythmcloud.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DrumHitReading implements Comparable<DrumHitReading> {
+public class DrumHitReadingWithType implements Comparable<DrumHitReadingWithType> {
     @JsonProperty("sessionId")
     private Long sessionId;
     @JsonProperty("drum")
@@ -22,9 +23,11 @@ public class DrumHitReading implements Comparable<DrumHitReading> {
     private Instant timestamp;
     @JsonProperty("voltage")
     private Double voltage;
+    @JsonProperty("type")
+    private Constants.Stream type;
 
     @Override
-    public int compareTo(DrumHitReading o) {
+    public int compareTo(DrumHitReadingWithType o) {
         Duration d = Duration.between(this.getTimestamp(), o.getTimestamp());
         if (d.toMillis() == 0)
             return 0;

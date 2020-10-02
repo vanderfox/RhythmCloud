@@ -1,14 +1,13 @@
 package com.amazonaws.rhythmcloud;
 
-import com.amazonaws.rhythmcloud.domain.DrumHitReading;
-import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithBPM;
+import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithType;
 import com.amazonaws.rhythmcloud.io.Kinesis;
 import com.amazonaws.rhythmcloud.process.ComputeBPMFunction;
 import com.amazonaws.rhythmcloud.process.DrumHitReadingTSWAssigner;
 import com.amazonaws.services.kinesisanalytics.runtime.KinesisAnalyticsRuntime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.streaming.api.TimeCharacteristic;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Map;
@@ -31,22 +30,35 @@ public class TemporalAnalyzer {
             Map<String, Properties> properties = KinesisAnalyticsRuntime.getApplicationProperties();
 
             // Read the system hit stream
-            // and compute the BPM using the metronome
-            DataStream<DrumHitReadingWithBPM> systemHitStreamWithBPM = Kinesis.createSourceFromApplicationProperties(
+            SingleOutputStreamOperator<DrumHitReadingWithType> systemHitStream = Kinesis.createSourceFromApplicationProperties(
                     Constants.Stream.SYSTEMHIT,
                     properties,
                     env)
                     .assignTimestampsAndWatermarks(new DrumHitReadingTSWAssigner())
-                    .keyBy(DrumHitReading::getSessionId)
-                    .process(new ComputeBPMFunction());
+                    .map(hit -> new DrumHitReadingWithType(
+                            hit.getSessionId(),
+                            hit.getDrum(),
+                            hit.getTimestamp(),
+                            hit.getVoltage(),
+                            Constants.Stream.SYSTEMHIT));
 
             // Read the user hit stream
-            DataStream<DrumHitReading> userHitStream = Kinesis.createSourceFromApplicationProperties(
+            SingleOutputStreamOperator<DrumHitReadingWithType> userHitStream = Kinesis.createSourceFromApplicationProperties(
                     Constants.Stream.USERHIT,
                     properties,
                     env)
                     .assignTimestampsAndWatermarks(new DrumHitReadingTSWAssigner())
-                    .keyBy(DrumHitReading::getSessionId);
+                    .map(hit -> new DrumHitReadingWithType(
+                            hit.getSessionId(),
+                            hit.getDrum(),
+                            hit.getTimestamp(),
+                            hit.getVoltage(),
+                            Constants.Stream.USERHIT));
+
+            // Compute the BPM using the metronome
+            systemHitStream.union(userHitStream)
+                    .keyBy(DrumHitReadingWithType::getSessionId)
+                    .process(new ComputeBPMFunction());
 
             env.execute("Temporal Analyzer");
         } catch (Exception err) {
