@@ -44,7 +44,8 @@ public class TemporalAnalyzer {
                     properties,
                     env)
                     .filter((FilterFunction<DrumHitReading>) drumHitReading ->
-                            (drumHitReading.getDrum().equalsIgnoreCase("metronome")));
+                            (drumHitReading.getDrum().equalsIgnoreCase("metronome")))
+                    .name("Metronome Stream");
 
             // Read the system hit stream without the metronome beat
             // and stamp the data with system hit
@@ -59,7 +60,8 @@ public class TemporalAnalyzer {
                             hit.getDrum(),
                             hit.getTimestamp(),
                             hit.getVoltage(),
-                            Constants.Stream.SYSTEMHIT));
+                            Constants.Stream.SYSTEMHIT))
+                    .name("System Hit Stream");
 
             // Read the user hit stream
             // and stamp the data with user hit
@@ -72,16 +74,19 @@ public class TemporalAnalyzer {
                             hit.getDrum(),
                             hit.getTimestamp(),
                             hit.getVoltage(),
-                            Constants.Stream.USERHIT));
+                            Constants.Stream.USERHIT))
+                    .name("User Hit Stream");
 
             // Combine the system hits and user hits
             // and sequence them by event time
             // we will use this for complex event processing
-            systemHitStream.union(userHitStream)
-                    .keyBy(DrumHitReadingWithType::getSessionId)
-                    .transform("re-order",
-                            Types.POJO(DrumHitReadingWithType.class),
-                            new EventTimeOrderingOperator<>());
+            SingleOutputStreamOperator<DrumHitReadingWithType> orderedMergedStream =
+                    systemHitStream.union(userHitStream)
+                            .keyBy(DrumHitReadingWithType::getSessionId)
+                            .transform("re-order",
+                                    Types.POJO(DrumHitReadingWithType.class),
+                                    new EventTimeOrderingOperator<>())
+                            .name("Ordered Merged Stream");
 
             env.execute("Temporal Analyzer");
         } catch (Exception err) {
