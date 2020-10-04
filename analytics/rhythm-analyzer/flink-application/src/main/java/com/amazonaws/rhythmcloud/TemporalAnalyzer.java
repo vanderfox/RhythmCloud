@@ -88,6 +88,10 @@ public class TemporalAnalyzer {
                                     new EventTimeOrderingOperator<>())
                             .name("Ordered Merged Stream");
 
+            // Complex event processing (CEP)
+            // to compute temporal accuracy
+            
+
             env.execute("Temporal Analyzer");
         } catch (Exception err) {
             log.error("Temporal analyzer failed", err);
