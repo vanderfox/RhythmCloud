@@ -1,39 +1,27 @@
 package com.amazonaws.rhythmcloud.domain;
 
 import com.amazonaws.rhythmcloud.Constants;
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.Duration;
-import java.time.Instant;
+import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class DrumHitReadingWithType implements Comparable<DrumHitReadingWithType> {
-    @JsonProperty("sessionId")
+public class DrumHitReadingWithType implements Serializable {
+    @SerializedName("sessionId")
     private Long sessionId;
-    @JsonProperty("drum")
+    @SerializedName("drum")
     private String drum;
-    @JsonProperty("timestamp")
-    private Instant timestamp;
-    @JsonProperty("voltage")
+    @SerializedName("timestamp")
+    private Long timestamp;
+    @SerializedName("voltage")
     private Double voltage;
-    @JsonProperty("type")
+    @SerializedName("type")
     private Constants.Stream type;
-
-    @Override
-    public int compareTo(DrumHitReadingWithType o) {
-        Duration d = Duration.between(this.getTimestamp(), o.getTimestamp());
-        if (d.toMillis() == 0)
-            return 0;
-        else if (d.toMillis() > 0)
-            return 1;
-        else
-            return -1;
-    }
 }

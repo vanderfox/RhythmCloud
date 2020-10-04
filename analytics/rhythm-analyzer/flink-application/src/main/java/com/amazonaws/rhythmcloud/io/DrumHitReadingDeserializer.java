@@ -1,7 +1,9 @@
 package com.amazonaws.rhythmcloud.io;
 
 import com.amazonaws.rhythmcloud.domain.DrumHitReading;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +15,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 
 @Slf4j
-public class DrumHitReadingDeSerializer extends AbstractDeserializationSchema<DrumHitReading> {
+public class DrumHitReadingDeserializer extends AbstractDeserializationSchema<DrumHitReading> {
     private static final Gson gson = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.IDENTITY) // IDENTITY: This policy with Gson will ensure that the field name is unchanged.
-            .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) -> Instant.parse(json.getAsString()))
             .create();
 
     public DrumHitReading deserialize(byte[] bytes) throws IOException {
@@ -31,8 +30,11 @@ public class DrumHitReadingDeSerializer extends AbstractDeserializationSchema<Dr
             log.info("Successfully translated: {}", reading);
             return reading;
         } catch (Exception e) {
-            log.error("cannot parse event '{}'", new String(bytes, StandardCharsets.UTF_8), e);
-            return null;
+            String s = new String(bytes, StandardCharsets.UTF_8);
+            log.error("cannot parse event '{}'", s, e);
+            throw new IOException(
+                    String.format("Cannot de-serialize %s", s),
+                    e);
         }
     }
 

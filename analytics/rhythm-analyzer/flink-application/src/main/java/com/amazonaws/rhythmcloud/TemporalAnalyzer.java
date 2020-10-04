@@ -1,11 +1,13 @@
 package com.amazonaws.rhythmcloud;
 
+import com.amazonaws.rhythmcloud.domain.DrumHitReading;
 import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithType;
 import com.amazonaws.rhythmcloud.io.Kinesis;
-import com.amazonaws.rhythmcloud.process.ComputeBPMFunction;
-import com.amazonaws.rhythmcloud.process.DrumHitReadingTSWAssigner;
+import com.amazonaws.rhythmcloud.process.EventTimeOrderingOperator;
 import com.amazonaws.services.kinesisanalytics.runtime.KinesisAnalyticsRuntime;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -27,14 +29,31 @@ public class TemporalAnalyzer {
                 Processing time for operators means that the operator uses the system clock of the machine to determine the current time of the data stream.
              */
             env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+            // Flink’s checkpointing enabled, the Flink Kinesis Consumer will consume
+            // records from shards in Kinesis streams and periodically checkpoint
+            // each shard’s progress. In case of a job failure, Flink will restore the streaming
+            // program to the state of the latest complete checkpoint and re-consume
+            // the records from Kinesis shards.
+            env.enableCheckpointing(5000); // checkpoint every 5000 5 seconds
+
             Map<String, Properties> properties = KinesisAnalyticsRuntime.getApplicationProperties();
 
-            // Read the system hit stream
+            // Isolate metronome beat
+            SingleOutputStreamOperator<DrumHitReading> metronomeHitStream = Kinesis.createSourceFromApplicationProperties(
+                    Constants.Stream.SYSTEMHIT,
+                    properties,
+                    env)
+                    .filter((FilterFunction<DrumHitReading>) drumHitReading ->
+                            (drumHitReading.getDrum().equalsIgnoreCase("metronome")));
+
+            // Read the system hit stream without the metronome beat
+            // and stamp the data with system hit
             SingleOutputStreamOperator<DrumHitReadingWithType> systemHitStream = Kinesis.createSourceFromApplicationProperties(
                     Constants.Stream.SYSTEMHIT,
                     properties,
                     env)
-                    .assignTimestampsAndWatermarks(new DrumHitReadingTSWAssigner())
+                    .filter((FilterFunction<DrumHitReading>) drumHitReading ->
+                            (!drumHitReading.getDrum().equalsIgnoreCase("metronome")))
                     .map(hit -> new DrumHitReadingWithType(
                             hit.getSessionId(),
                             hit.getDrum(),
@@ -43,11 +62,11 @@ public class TemporalAnalyzer {
                             Constants.Stream.SYSTEMHIT));
 
             // Read the user hit stream
+            // and stamp the data with user hit
             SingleOutputStreamOperator<DrumHitReadingWithType> userHitStream = Kinesis.createSourceFromApplicationProperties(
                     Constants.Stream.USERHIT,
                     properties,
                     env)
-                    .assignTimestampsAndWatermarks(new DrumHitReadingTSWAssigner())
                     .map(hit -> new DrumHitReadingWithType(
                             hit.getSessionId(),
                             hit.getDrum(),
@@ -55,10 +74,14 @@ public class TemporalAnalyzer {
                             hit.getVoltage(),
                             Constants.Stream.USERHIT));
 
-            // Compute the BPM using the metronome
+            // Combine the system hits and user hits
+            // and sequence them by event time
+            // we will use this for complex event processing
             systemHitStream.union(userHitStream)
                     .keyBy(DrumHitReadingWithType::getSessionId)
-                    .process(new ComputeBPMFunction());
+                    .transform("re-order",
+                            Types.POJO(DrumHitReadingWithType.class),
+                            new EventTimeOrderingOperator<>());
 
             env.execute("Temporal Analyzer");
         } catch (Exception err) {
