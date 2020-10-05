@@ -70,7 +70,7 @@ myMQTTClient.configureEndpoint("a3lka4ud7kfmrw-ats.iot.us-east-1.amazonaws.com",
 # myMQTTClient.configureEndpoint("YOUR.ENDPOINT", 443)
 # For TLS mutual authentication with TLS ALPN extension
 # myMQTTClient.configureEndpoint("YOUR.ENDPOINT", 443)
-myMQTTClient.configureCredentials("/greengrass/certs/root.ca.pem", "/home/pi/.ssh/6acf979319.private.key", "/greengrass/certs/6acf979319.cert.pem")
+myMQTTClient.configureCredentials("/greengrass/certs/AmazonRootCA1.pem", "/greengrass/certs/6acf979319.private.key", "/greengrass/certs/6acf979319.cert.pem")
 # For Websocket, we only need to configure the root CA
 # myMQTTClient.configureCredentials("YOUR/ROOT/CA/PATH")
 myMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
