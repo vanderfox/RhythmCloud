@@ -359,8 +359,8 @@ def blink_drums(pixels, drumList, sessionid, voltage = 0.0):
             fireDrumstick(drum.counter,drum.serialport,0.25,drum.drumA,drum.drumB)
             if drum.counter == 0:
                drum.counter = 1
-            if drum.counter >= 1:
-               drum.counter = 0 
+            else:
+               drum.counter = 0
             print("drum "+drum.name+" counter="+str(drum.counter)) 
 
         pixels.show()
