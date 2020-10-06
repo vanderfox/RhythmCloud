@@ -69,6 +69,20 @@ public class TemporalAnalyzerConstruct extends Construct {
                 )))
                 .build();
 
+        // CDK does not support timestream db yet
+        // TODO: Once you add the right props for TimeStream DB,
+        // please change the ARN to the ARN of the timestream table
+        PolicyStatement timeStreamDBPolicyStatement = PolicyStatement.Builder.create()
+                .sid("TimeStreamDBAll")
+                .effect(Effect.ALLOW)
+                .actions(Arrays.asList(
+                        "timestream:WriteRecords",
+                        "timestream:CancelQuery",
+                        "timestream:UpdateTable"
+                ))
+                .resources(Collections.singletonList("*"))
+                .build();
+
         rhythmAnalyzerRole = Role.Builder.create(this, "rhythm-cloud-analyzer-role")
                 .roleName("rhythm-cloud-analyzer-role")
                 .assumedBy(new ServicePrincipal("kinesisanalytics.amazonaws.com"))
@@ -82,7 +96,8 @@ public class TemporalAnalyzerConstruct extends Construct {
                         kinesisWriterPolicyStatement,
                         kinesisReaderPolicyStatement,
                         kinesisMetadataReaderPolicyStatement,
-                        cloudWatchAnalyzerPolicyStatement))
+                        cloudWatchAnalyzerPolicyStatement,
+                        timeStreamDBPolicyStatement))
                 .build();
 
         rhythmAnalyzerRole.addManagedPolicy(rhythmAnalyzerPolicy);
