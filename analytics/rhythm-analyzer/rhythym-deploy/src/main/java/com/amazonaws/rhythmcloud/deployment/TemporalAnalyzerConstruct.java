@@ -124,6 +124,19 @@ public class TemporalAnalyzerConstruct extends Construct {
                 .propertyMap(userHitPropertyMap)
                 .build();
 
+        // CDK for timestream is not available yet
+        // Manually create the resources and hard code the values here
+        // TODO: Replace when CDK is available for timestream
+        Map<String, String> timeStreamSinkPropertyMap = new HashMap<>();
+        timeStreamSinkPropertyMap.put("aws.region", "us-east-1");
+        timeStreamSinkPropertyMap.put("timestream.db.name", "rhythm_cloud");
+        timeStreamSinkPropertyMap.put("timestream.db.table.name", "rhythm");
+        timeStreamSinkPropertyMap.put("timestream.db.batch_size", "1000");
+        CfnApplicationV2.PropertyGroupProperty timeStreamSinkPropertyGroup = CfnApplicationV2.PropertyGroupProperty.builder()
+                .propertyGroupId("TIMESTREAM")
+                .propertyMap(timeStreamSinkPropertyMap)
+                .build();
+
         CfnApplicationV2.ApplicationConfigurationProperty applicationConfigurationProperty = CfnApplicationV2.ApplicationConfigurationProperty.builder()
                 .applicationSnapshotConfiguration(CfnApplicationV2.ApplicationSnapshotConfigurationProperty.builder()
                         .snapshotsEnabled(true)
@@ -151,7 +164,9 @@ public class TemporalAnalyzerConstruct extends Construct {
                                 .build())
                         .build())
                 .environmentProperties(CfnApplicationV2.EnvironmentPropertiesProperty.builder()
-                        .propertyGroups(Arrays.asList(systemHitPropertyGroup, userHitPropertyGroup))
+                        .propertyGroups(Arrays.asList(systemHitPropertyGroup,
+                                userHitPropertyGroup,
+                                timeStreamSinkPropertyGroup))
                         .build())
                 .build();
 

@@ -23,9 +23,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>bom</artifactId>
-                <version>2.15.1</version>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-bom</artifactId>
+                <version>1.11.875</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -44,6 +44,11 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-kinesisanalytics-flink</artifactId>
             <version>${aws.kda.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-timestreamwrite</artifactId>
         </dependency>
 
         <!-- Flink dependency -->

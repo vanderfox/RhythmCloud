@@ -117,4 +117,43 @@ public class Kinesis {
 
         return env.addSource(drumHitReadingFlinkKinesisConsumer);
     }
+
+    public static TimestreamSink createTimeSinkFromConfig(
+            Constants.Stream stream,
+            Map<String, Properties> applicationProperties,
+            StreamExecutionEnvironment env) {
+        Properties sinkProperties = applicationProperties.get(
+                Constants.propertyGroupNames.get(stream));
+
+        // Make sure all the mandatory properties are set: REGION, STREAMPOSITION et al.
+        if (sinkProperties.getProperty(AWSConfigConstants.AWS_REGION) == null) {
+            //set the region the Kinesis stream is located in
+            sinkProperties.put(AWSConfigConstants.AWS_REGION,
+                    Regions.getCurrentRegion() == null ? DEFAULT_REGION_NAME :
+                            Regions.getCurrentRegion().getName());
+        }
+        if (sinkProperties.getProperty("timestream.db.name") == null) {
+            //stream initialization position
+            sinkProperties.put("timestream.db.name",
+                    Constants.TIMESTREAM_DB_NAME);
+        }
+        if (sinkProperties.getProperty("timestream.db.table.name") == null) {
+            //stream initialization position
+            sinkProperties.put("timestream.db.table.name",
+                    Constants.TIMESTREAM_DB_TABLE_NAME);
+        }
+        if (sinkProperties.getProperty("timestream.db.batch_size") == null) {
+            //stream initialization position
+            sinkProperties.put("timestream.db.batch_size",
+                    Constants.TIMESTREAM_DB_BATCH_SIZE);
+        }
+
+        log.info("Timestream Sink Properties {}", sinkProperties.toString());
+
+        return new TimestreamSink(sinkProperties.getProperty(AWSConfigConstants.AWS_REGION),
+                sinkProperties.getProperty("timestream.db.name"),
+                sinkProperties.getProperty("timestream.db.table.name"),
+                Integer.parseInt(sinkProperties.getProperty("timestream.db.batch_size")));
+    }
+
 }

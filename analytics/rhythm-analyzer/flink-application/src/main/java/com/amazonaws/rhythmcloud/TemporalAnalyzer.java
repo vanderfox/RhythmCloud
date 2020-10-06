@@ -3,6 +3,7 @@ package com.amazonaws.rhythmcloud;
 import com.amazonaws.rhythmcloud.domain.DrumHitReading;
 import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithType;
 import com.amazonaws.rhythmcloud.io.Kinesis;
+import com.amazonaws.rhythmcloud.process.DrumHitReadingWithTypeToTimeStreamPayload;
 import com.amazonaws.rhythmcloud.process.EventTimeOrderingOperator;
 import com.amazonaws.services.kinesisanalytics.runtime.KinesisAnalyticsRuntime;
 import lombok.extern.slf4j.Slf4j;
@@ -88,9 +89,15 @@ public class TemporalAnalyzer {
                                     new EventTimeOrderingOperator<>())
                             .name("Ordered Merged Stream");
 
-            // Complex event processing (CEP)
-            // to compute temporal accuracy
-            
+            // Sink the unified stream into timestream database
+            orderedMergedStream
+                    .map(new DrumHitReadingWithTypeToTimeStreamPayload())
+                    .addSink(
+                            Kinesis.createTimeSinkFromConfig(
+                                    Constants.Stream.TIMESTREAM,
+                                    properties,
+                                    env))
+                    .name("Sink to Timestream database");
 
             env.execute("Temporal Analyzer");
         } catch (Exception err) {
