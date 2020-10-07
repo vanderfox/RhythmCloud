@@ -21,17 +21,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+// references:
+// 1. https://stackoverflow.com/questions/58742213/buffering-transformed-messagesexample-1000-count-using-apache-flink-stream-pr
+// 2. https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/state.html
+
+/**
+ * Sink function for Flink to ingest data to Timestream
+ */
 @Slf4j
 public class TimestreamSink extends RichSinkFunction<TimestreamPoint> implements CheckpointedFunction {
     private static final long RECORDS_FLUSH_INTERVAL_MILLISECONDS = 60L * 1000L; // One minute
+
+    private transient ListState<Record> checkpointedState;
+
+    private AmazonTimestreamWrite writeClient;
+
     private final String region;
     private final String db;
     private final String table;
     private final Integer batchSize;
-    private transient ListState<Record> checkpointedState;
-    private transient AmazonTimestreamWrite writeClient;
+
     private List<Record> bufferedRecords;
-    private long emptyListTimestamp;
+    private long emptyListTimetamp;
 
     public TimestreamSink(String region, String databaseName, String tableName, int batchSize) {
         this.region = region;
@@ -39,7 +50,7 @@ public class TimestreamSink extends RichSinkFunction<TimestreamPoint> implements
         this.table = tableName;
         this.batchSize = batchSize;
         this.bufferedRecords = new ArrayList<>();
-        this.emptyListTimestamp = System.currentTimeMillis();
+        this.emptyListTimetamp = System.currentTimeMillis();
     }
 
     @Override
@@ -63,9 +74,7 @@ public class TimestreamSink extends RichSinkFunction<TimestreamPoint> implements
         List<Dimension> dimensions = new ArrayList<>();
 
         for (Map.Entry<String, String> entry : value.getDimensions().entrySet()) {
-            Dimension dim = new Dimension()
-                    .withName(entry.getKey())
-                    .withValue(entry.getValue());
+            Dimension dim = new Dimension().withName(entry.getKey()).withValue(entry.getValue());
             dimensions.add(dim);
         }
 
@@ -89,11 +98,30 @@ public class TimestreamSink extends RichSinkFunction<TimestreamPoint> implements
                 WriteRecordsResult writeRecordsResult = this.writeClient.writeRecords(writeRecordsRequest);
                 log.debug("writeRecords Status: " + writeRecordsResult.getSdkHttpMetadata().getHttpStatusCode());
                 bufferedRecords.clear();
-                emptyListTimestamp = System.currentTimeMillis();
+                emptyListTimetamp = System.currentTimeMillis();
             } catch (Exception e) {
                 log.error("Error: " + e);
             }
         }
+    }
+
+    // Method to validate if record batch should be published.
+    // This method would return true if the accumulated records has reached the batch size.
+    // Or if records have been accumulated for last RECORDS_FLUSH_INTERVAL_MILLISECONDS time interval.
+    private boolean shouldPublish() {
+        if (bufferedRecords.size() == batchSize) {
+            log.debug("Batch of size " + bufferedRecords.size() + " should get published");
+            return true;
+        } else if (System.currentTimeMillis() - emptyListTimetamp >= RECORDS_FLUSH_INTERVAL_MILLISECONDS) {
+            log.debug("Records after flush interval should get published");
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
     }
 
     @Override
@@ -117,24 +145,5 @@ public class TimestreamSink extends RichSinkFunction<TimestreamPoint> implements
                 bufferedRecords.add(element);
             }
         }
-    }
-
-    @Override
-    public void close() throws Exception {
-        super.close();
-    }
-
-    // Method to validate if record batch should be published.
-    // This method would return true if the accumulated records has reached the batch size.
-    // Or if records have been accumulated for last RECORDS_FLUSH_INTERVAL_MILLISECONDS time interval.
-    private boolean shouldPublish() {
-        if (bufferedRecords.size() == batchSize) {
-            log.debug("Batch of size " + bufferedRecords.size() + " should get published");
-            return true;
-        } else if (System.currentTimeMillis() - emptyListTimestamp >= RECORDS_FLUSH_INTERVAL_MILLISECONDS) {
-            log.debug("Records after flush interval should get published");
-            return true;
-        }
-        return false;
     }
 }
