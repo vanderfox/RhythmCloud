@@ -19,17 +19,18 @@ import static com.amazonaws.rhythmcloud.Constants.DEFAULT_REGION_NAME;
 
 @Slf4j
 public class Kinesis {
-    public static DataStream<DrumHitReading> createSourceFromApplicationProperties(
+    public static DataStream<DrumHitReading> createSourceFromConfig(
             Constants.Stream stream,
             Map<String, Properties> applicationProperties,
             StreamExecutionEnvironment env) {
+        log.info("Reading configuration for {}", stream.toString());
         Properties sourceProperties = applicationProperties.get(
-                Constants.propertyGroupNames.get(stream));
+                Constants.getPropertyGroupName(stream));
 
         // Throw exception if you cannot find the source properties
         if (sourceProperties == null) {
             String errorMessage = String.format("Unable to load %s property group from the Kinesis Analytics Runtime.",
-                    Constants.propertyGroupNames.get(stream));
+                    Constants.getPropertyGroupName(stream));
             log.error(errorMessage);
             throw new RuntimeException(errorMessage);
         }
@@ -87,7 +88,7 @@ public class Kinesis {
          */
         FlinkKinesisConsumer<DrumHitReading> drumHitReadingFlinkKinesisConsumer = new FlinkKinesisConsumer<>(
                 sourceProperties.getProperty("input.stream.name",
-                        Constants.streamNames.get(stream)),
+                        Constants.getStreamName(stream)),
                 new DrumHitReadingDeserializer(),
                 sourceProperties);
 
@@ -112,7 +113,7 @@ public class Kinesis {
          */
 
         JobManagerWatermarkTracker watermarkTracker =
-                new JobManagerWatermarkTracker(Constants.streamNames.get(stream));
+                new JobManagerWatermarkTracker(Constants.getStreamName(stream));
         drumHitReadingFlinkKinesisConsumer.setWatermarkTracker(watermarkTracker);
 
         return env.addSource(drumHitReadingFlinkKinesisConsumer);
@@ -123,7 +124,7 @@ public class Kinesis {
             Map<String, Properties> applicationProperties,
             StreamExecutionEnvironment env) {
         Properties sinkProperties = applicationProperties.get(
-                Constants.propertyGroupNames.get(stream));
+                Constants.getPropertyGroupName(stream));
 
         // Make sure all the mandatory properties are set: REGION, STREAMPOSITION et al.
         if (sinkProperties.getProperty(AWSConfigConstants.AWS_REGION) == null) {

@@ -1,13 +1,17 @@
 package com.amazonaws.rhythmcloud;
 
-import java.util.EnumMap;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class Constants {
     public static final String DEFAULT_REGION_NAME = "us-east-1";
 
     public static final String STREAM_LATEST_POSITION = "LATEST";
 
     public static final String STREAM_POLL_INTERVAL = "1000";
+    public static final String TIMESTREAM_DB_NAME = "rhythm_cloud";
+    public static final String TIMESTREAM_DB_TABLE_NAME = "rhythm";
+    public static final String TIMESTREAM_DB_BATCH_SIZE = "1000";
 
     public enum Stream {
         SYSTEMHIT(1),
@@ -26,26 +30,38 @@ public final class Constants {
         }
     }
 
-    public static final EnumMap<Stream, String> propertyGroupNames =
-            new EnumMap<>(Stream.class);
+    public static String getPropertyGroupName(Stream stream) {
+        String propertyGroupName = null;
+        switch (stream) {
+            case SYSTEMHIT:
+                propertyGroupName = "SYSTEMHIT";
+                break;
+            case USERHIT:
+                propertyGroupName = "USERHIT";
+                break;
+            case TEMPORALANALYSIS:
+                propertyGroupName = "TEMPORALANALYSIS";
+                break;
+            case TIMESTREAM:
+                propertyGroupName = "TIMESTREAM";
+                break;
+        }
+        return propertyGroupName;
+    }
 
-    public static final EnumMap<Stream, String> streamNames =
-            new EnumMap<>(Stream.class);
-
-    public static final String TIMESTREAM_DB_NAME = "rhythm_cloud";
-
-    public static final String TIMESTREAM_DB_TABLE_NAME = "rhythm";
-
-    public static final String TIMESTREAM_DB_BATCH_SIZE = "1000";
-
-    public Constants() {
-        propertyGroupNames.put(Stream.SYSTEMHIT, "SYSTEMHIT");
-        propertyGroupNames.put(Stream.USERHIT, "USERHIT");
-        propertyGroupNames.put(Stream.TEMPORALANALYSIS, "TEMPORALANALYSIS");
-        propertyGroupNames.put(Stream.TIMESTREAM, "TIMESTREAM");
-
-        streamNames.put(Stream.SYSTEMHIT, "rhythm-cloud-system-hit-stream");
-        streamNames.put(Stream.USERHIT, "rhythm-cloud-user-hit-stream");
-        streamNames.put(Stream.TEMPORALANALYSIS, "rhythm-cloud-analysis-output-stream");
+    public static String getStreamName(Stream stream) {
+        String streamName = null;
+        switch (stream) {
+            case SYSTEMHIT:
+                streamName = "rhythm-cloud-system-hit-stream";
+                break;
+            case USERHIT:
+                streamName = "rhythm-cloud-user-hit-stream";
+                break;
+            case TEMPORALANALYSIS:
+                streamName = "rhythm-cloud-analysis-output-stream";
+                break;
+        }
+        return streamName;
     }
 }

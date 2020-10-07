@@ -1,14 +1,16 @@
 package com.amazonaws.rhythmcloud.io;
 
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.rhythmcloud.domain.TimeStreamPoint;
+import com.amazonaws.rhythmcloud.domain.TimestreamPoint;
 import com.amazonaws.services.timestreamwrite.AmazonTimestreamWrite;
 import com.amazonaws.services.timestreamwrite.AmazonTimestreamWriteClientBuilder;
-import com.amazonaws.services.timestreamwrite.model.*;
+import com.amazonaws.services.timestreamwrite.model.Dimension;
+import com.amazonaws.services.timestreamwrite.model.Record;
+import com.amazonaws.services.timestreamwrite.model.WriteRecordsRequest;
+import com.amazonaws.services.timestreamwrite.model.WriteRecordsResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -20,18 +22,14 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class TimestreamSink extends RichSinkFunction<TimeStreamPoint> implements CheckpointedFunction {
+public class TimestreamSink extends RichSinkFunction<TimestreamPoint> implements CheckpointedFunction {
     private static final long RECORDS_FLUSH_INTERVAL_MILLISECONDS = 60L * 1000L; // One minute
-
-    private transient ListState<Record> checkpointedState;
-
-    private transient AmazonTimestreamWrite writeClient;
-
     private final String region;
     private final String db;
     private final String table;
     private final Integer batchSize;
-
+    private transient ListState<Record> checkpointedState;
+    private transient AmazonTimestreamWrite writeClient;
     private List<Record> bufferedRecords;
     private long emptyListTimestamp;
 
@@ -61,14 +59,13 @@ public class TimestreamSink extends RichSinkFunction<TimeStreamPoint> implements
     }
 
     @Override
-    public void invoke(TimeStreamPoint value, Context context) throws Exception {
+    public void invoke(TimestreamPoint value, Context context) throws Exception {
         List<Dimension> dimensions = new ArrayList<>();
 
-        for (Map.Entry<String, Tuple2<DimensionValueType, String>> entry : value.getDimensions().entrySet()) {
+        for (Map.Entry<String, String> entry : value.getDimensions().entrySet()) {
             Dimension dim = new Dimension()
                     .withName(entry.getKey())
-                    .withValue(entry.getValue().f1)
-                    .withDimensionValueType(entry.getValue().f0);
+                    .withValue(entry.getValue());
             dimensions.add(dim);
         }
 
