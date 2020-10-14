@@ -190,6 +190,8 @@ def playYaml(yamlFile, sessionId, overrideTempo = 0, duration = 30.0):
         try:
             yaml_loaded = yaml.safe_load(stream)
             tempo = float(yaml_loaded.get("tempo"))
+            print ("tempo from file: ", tempo)
+            print ("overridden tempo: ", overrideTempo)
             if (overrideTempo > 0):
                tempo = float(overrideTempo)
 
@@ -231,7 +233,6 @@ def processBar(beatCount = 1, item=[], sessionId="123", tempo = 120, duration = 
         for drumHit in combo:
             comboString = comboString + drumHit.get("hit") + " "
             drumList.append(drumFromName(drumHit.get("hit")))
-
             drumList.append(metronome) # blink metronome to the tempo
             blink_drums(pixels,drumList,sessionId)
             print("%d:  %s" % (beatCount, comboString))
@@ -241,16 +242,17 @@ def processBar(beatCount = 1, item=[], sessionId="123", tempo = 120, duration = 
     if (currentDuration > float(duration) and duration > 0):
         print("end")
 #        myMQTTClient.disconnect()
-        startidlemode()
+        #startidlemode()
+        closeSerials()
         sys.exit(0)
 
     time.sleep(sleep)
 
-def readfile(file, sessionid, tempo = 0, duration = 30.0):
+def readfile(file, sessionid, tempo = 0.0, duration = 30.0):
     startTime = time.time()
-    beat = float(float(60.0) / float(tempo))
-    if (tempo < 1):
-        beat = float(float(60) / float(120)) 
+    beat = float(float(60) / float(120)) #set a default of 120 beats a minute
+    if (tempo > 0.0):
+        beat = float(float(60.0) / float(tempo))
     mid = MidiFile(file)
     print("ticks per beat:"+format(mid.ticks_per_beat))
     print("beat=",beat)
@@ -259,7 +261,7 @@ def readfile(file, sessionid, tempo = 0, duration = 30.0):
     for i, track in enumerate(mid.tracks):
         if (firstHit == True):
             print('starting countdown beat=',beat)
-            start_count(pixels, blink_times = 1, color=GREEN, tempo = tempo, sessionId = sessionid)
+            start_count(pixels, 1, GREEN, tempo, sessionid)
             firstHit = False
             print("finished start count")
             
@@ -282,9 +284,9 @@ def readfile(file, sessionid, tempo = 0, duration = 30.0):
                 if (msg.velocity > 0 and msg.note in largetom.pitches):
                         print('largetom')
                 	drumList.append(largetom)
-	        	if (msg.velocity > 0 and msg.note in snaredrum.pitches):
-                           print('snaredrum')
-                	   drumList.append(snaredrum)
+        	if (msg.velocity > 0 and msg.note in snaredrum.pitches):
+                        print('snaredrum')
+               	        drumList.append(snaredrum)
                 if (msg.velocity > 0 and msg.note in ridecymbal.pitches):
                         print('ridecymbal')
                         drumList.append(ridecymbal)
@@ -311,20 +313,12 @@ def readfile(file, sessionid, tempo = 0, duration = 30.0):
                     print("end")
 #                    myMQTTClient.disconnect()
                     startidlemode()
+                    closeSerials()
                     sys.exit(0)
 
+                print ("************************* end beat ********************")
                 time.sleep(beat)
             break
-# Define the wheel function to interpolate between different hues.
-def wheel(pos):
-    if pos < 85:
-        return Adafruit_WS2801.RGB_to_color(pos * 3, 255 - pos * 3, 0)
-    elif pos < 170:
-        pos -= 85
-        return Adafruit_WS2801.RGB_to_color(255 - pos * 3, 0, pos * 3)
-    else:
-        pos -= 170
-        return Adafruit_WS2801.RGB_to_color(0, pos * 3, 255 - pos * 3)
 
 def blink_drum(pixels, drumList, sessionid, color=(255, 255, 255)):
         pixels.clear()
@@ -335,33 +329,41 @@ def blink_drum(pixels, drumList, sessionid, color=(255, 255, 255)):
         pixels.clear()
         pixels.show()
 
+def sendReferenceData(sessionid, voltage, tz, epoch, drum):
+        topicValue = "/song/reference"
+        payloadData = {}
+        payloadData['drum'] = drum.name
+        payloadData['timestamp'] = (datetime.now(timezone('America/Chicago')) - epoch).total_seconds() * 1000.0
+        #payloadData['timestamp'] = time.time.time_ns()
+        payloadData['sessionId'] = sessionid
+        payloadData['voltage'] = voltage
+        result = myMQTTClient.publish(
+              topicValue,
+              json.dumps(payloadData), 0)
+        print("send message to queue result:")
+        print(result)
+
+def blinkDrum(drum):
+        for k in range(drum.startLED, drum.endLED):
+            pixels.set_pixel(k, Adafruit_WS2801.RGB_to_color( drum.color[0], drum.color[1], drum.color[2] ))
+
+def hitDrum(drum):
+        fireDrumstick(drum.counter,drum.serialport,0.25,drum.drumA,drum.drumB)
+        if drum.counter == 0:
+           drum.counter = 1
+        else:
+           drum.counter = 0
+        print("drum "+drum.name+" counter="+str(drum.counter))
 
 def blink_drums(pixels, drumList, sessionid, voltage = 0.0):
         pixels.clear()
-#        epoch = datetime.utcfromtimestamp(0)
         tz = pytz.timezone('America/Chicago')
         epoch = datetime.fromtimestamp(0, tz)
         for drum in drumList:
-            topicValue = "/song/reference"
-            payloadData = {}
-            payloadData['drum'] = drum.name
-            payloadData['timestamp'] = (datetime.now(timezone('America/Chicago')) - epoch).total_seconds() * 1000.0
-            #payloadData['timestamp'] = time.time.time_ns() 
-            payloadData['sessionId'] = sessionid
-            payloadData['voltage'] = voltage
-            result = myMQTTClient.publish(
-                  topicValue,
-                  json.dumps(payloadData), 0)
-            print("send message to queue result:")
-            print(result)
-            for k in range(drum.startLED, drum.endLED):
-                pixels.set_pixel(k, Adafruit_WS2801.RGB_to_color( drum.color[0], drum.color[1], drum.color[2] ))
-            fireDrumstick(drum.counter,drum.serialport,0.25,drum.drumA,drum.drumB)
-            if drum.counter == 0:
-               drum.counter = 1
-            else:
-               drum.counter = 0
-            print("drum "+drum.name+" counter="+str(drum.counter)) 
+            sendReferenceData(sessionid, voltage, tz, epoch, drum)
+            blinkDrum(drum)
+            if(drum.name != 'metronome'):
+                hitDrum(drum)
 
         pixels.show()
         pixels.clear()
@@ -383,7 +385,7 @@ def start_count(pixels, blink_times=1, color=(255,255,255),tempo = 120.0, sessio
         pixels.show()
         pixels.clear()
         pixels.show()
-        blink_drums(pixels,[metronome], sessionId)
+        #blink_drums(pixels, [metronome], sessionId)
         time.sleep(beat)
 
 #def start_count(pixels, blink_times=1, sessionid, color=(255,255,255)):
@@ -435,23 +437,7 @@ def fireDrumstick(counter, ser, delay, drumA, drumB):
                 fireStickTwo(ser, delay, drumB)
         return
 
-if __name__ == "__main__":
-    # Clear all the pixels to turn them off.
-    subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
-    time.sleep(1)
-       
-    pixels.clear()
-    pixels.show()  # Make sure to call show() after changing any pixels!
-
-    #start_count(pixels, blink_times = 1, color=GREEN)
-    mapDrums("drum-map.csv")
-    if (sys.argv[2].endswith(".mid")):
-       readfile(sys.argv[2],sys.argv[3],sys.argv[4],float(sys.argv[1]))
-
-    if (sys.argv[2].endswith('.yaml')):
-        playYaml(sys.argv[2],sys.argv[3],sys.argv[4],float(sys.argv[1]))
-    #for i in range(10):
-    subprocess.call(["/usr/bin/supervisorctl","start idlemode"])
+def closeSerials():
     ser1.close()
     ser2.close()
     ser3.close()
@@ -461,3 +447,28 @@ if __name__ == "__main__":
     ser7.close()
     ser8.close()
 
+if __name__ == "__main__":
+
+    fileToPlay = sys.argv[1]
+    sessionId = sys.argv[2]
+    duration = float(sys.argv[3])
+    overrideTempo = float(sys.argv[4])
+   
+    # Clear all the pixels to turn them off.
+    #subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
+    time.sleep(1)
+       
+    pixels.clear()
+    pixels.show()  # Make sure to call show() after changing any pixels!
+
+    #start_count(pixels, blink_times = 1, color=GREEN)
+    mapDrums("drum-map.csv")
+    if (fileToPlay.endswith(".mid")):
+       readfile(fileToPlay,sessionId,overrideTempo,duration)
+
+    if (fileToPlay.endswith('.yaml')):
+       playYaml(fileToPlay,sessionId,overrideTempo,duration)
+
+    #for i in range(10):
+    #subprocess.call(["/usr/bin/supervisorctl","start idlemode"])
+    closeSerials()
