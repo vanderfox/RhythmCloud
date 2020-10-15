@@ -443,7 +443,7 @@ async def fireStickOne(ser, delay, drumA):
     print("Firing Motor A")
     ser.write(bytes([drumA]))
     out = ''
-    time.sleep(delay)
+    await asyncio.sleep(delay)
     while ser.inWaiting() > 0:
         out += str(ser.read(1))
     if out != '':
@@ -455,7 +455,7 @@ async def fireStickTwo(ser, delay, drumB):
     print("Firing Motor B")
     ser.write(bytes([drumB]))
     out = ''
-    time.sleep(delay)
+    await asyncio.sleep(delay)
     while ser.inWaiting() > 0:
         out += str(ser.read(1))
     if out != '':
