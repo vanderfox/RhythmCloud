@@ -7,4 +7,4 @@ This project is broken into its components as follows:
 - web: this is the static html files for the web UI
 - lambda: lambda functions for UI and Greengrass
 
-
+update
