@@ -98,13 +98,14 @@ def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}):
                 if (drum.name in voltageDict.keys()):
                   payloadData['voltage'] = voltageDict[drum.name]
                 else:
-                  payloadData['voltage'] = 0.0
+                  continue
+                  #payloadData['voltage'] = 0.0
 
                 result = myMQTTClient.publish(
                   topicValue,
                   json.dumps(payloadData), 0)
-                print("send message to queue result:")
-                print(result)
+                #print("send message to queue result:")
+                #print(result)
 
         pixels.show()
         pixels.clear()
@@ -199,11 +200,11 @@ def main():
         except:
            print("Error reading voltage channel 5!")
         try:
-           voltage6 = adc.read_voltage(6)
-#        print("Channel 6: %02f" % voltage6)
-           if(voltage6 > 0.02):
-              drumList.append(snareDrum)
-              voltageDict[snaredrum.name] = voltage6
+          voltage6 = adc.read_voltage(6)
+          print("Channel 6: %02f" % voltage6)
+          if(voltage6 > 0.02):
+             drumList.append(snareDrum)
+             voltageDict[snareDrum.name] = voltage6
         except:
            print("Error reading voltage channel 6!")
         try:
