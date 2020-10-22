@@ -1,6 +1,7 @@
 package com.amazonaws.rhythmcloud;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.streaming.connectors.kinesis.config.ConsumerConfigConstants;
 
 @Slf4j
 public final class Constants {
