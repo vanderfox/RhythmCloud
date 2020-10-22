@@ -13,12 +13,15 @@ import lombok.ToString;
 @ToString
 @JsonAdapter(DrumHitReadingDeserializer.class)
 public class DrumHitReading {
-    @SerializedName("sessionId")
-    private Long sessionId;
-    @SerializedName("drum")
-    private String drum;
-    @SerializedName("timestamp")
-    private Long timestamp;
-    @SerializedName("voltage")
-    private Double voltage;
+  @SerializedName("sessionId")
+  private Long sessionId;
+
+  @SerializedName("drum")
+  private String drum;
+
+  @SerializedName("timestamp")
+  private Long timestamp;
+
+  @SerializedName("voltage")
+  private Double voltage;
 }
