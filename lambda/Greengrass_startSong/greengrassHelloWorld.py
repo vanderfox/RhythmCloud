@@ -30,16 +30,16 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 table = dynamodb.Table('RhythmCloudSongs')
 s3 = boto3.resource('s3')
 
-def start_record_drums(sessionId, song = "/home/pi/song.mid", duration="30"):
+def start_record_drums(sessionId, song = "/home/pi/song.mid", duration="30", stageName = "Guest"):
     print('function start_record_drum')
     print('start_record_drum for sessionId:', sessionId)
     print("start_record_drums for song:", song)
     print("start_record_drums for duration:", duration)
     try:
-       out = check_output(['/usr/bin/python','/home/pi/respondToHitCloud.py',str(duration),song,sessionId])
+       out = check_output(['/usr/bin/python','/home/pi/respondToHitCloud.py',str(duration),song,sessionId,stageName])
        print("recording complete out:",out)
     except:
-        print("Error running respondToHitCloud!")
+       print("Error running respondToHitCloud!")
 
 
 
@@ -69,7 +69,11 @@ def greengrass_hello_world_run(event,context):
         print("tempo=",tempo)
         sessionId = event['state']['reported']['sessionId']
         print("sessionId:",sessionId)
-        print("Getting sondId from dynamo",songId)
+        stageName = event['state']['reported']['stageName']
+        print("stageName:",stageName)
+        startRecord = event['state']['reported']['startRecord']
+        print("startRecord",startRecord)
+        print("Getting songId from dynamo",songId)
         response = table.query(
            KeyConditionExpression=Key('id').eq(songId)
         )
@@ -89,20 +93,27 @@ def greengrass_hello_world_run(event,context):
         print("downloaded file:",filename)
 
         try:
-            drum1 = Process(target=start_record_drums, args=(sessionId,filename,duration))
-            drum1.start()
+            if (startRecord == "True"):
+                print("Starting recording session of drums")
+                drum1 = Process(target=start_record_drums, args=(sessionId,filename,duration))
+                drum1.start()
         except:
             print("Error running record drums!")
 
         try:
-            out = check_output(['/usr/bin/python','/home/pi/midiplay.py',str(duration),"/home/pi/"+filename,sessionId,str(tempo)])
+            out = check_output(['/usr/bin/python','/home/pi/midiplay.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
             print(out)
         except:
             print('Error running midiplay!')
 # start lambda for each instrument to start to listen and transmit to queue
-        client.publish(
-            topic='hello/world',
-            payload='Music Trainer started ')
+        if (startRecord == "True"):
+            client.publish(
+                topic='hello/world',
+                payload='Music Trainer started ')
+        else:
+            client.publish(
+                topic='hello/world',
+                payload='Music Recording started ')
 
 
     # Asynchronously schedule this function to be run again in 5 seconds
