@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.kinesis.shaded.com.amazonaws.regions.Regions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.connectors.kinesis.FlinkKinesisConsumer;
 import org.apache.flink.streaming.connectors.kinesis.config.AWSConfigConstants;
 import org.apache.flink.streaming.connectors.kinesis.config.ConsumerConfigConstants;
@@ -69,31 +68,6 @@ public class Kinesis {
             sourceProperties.getProperty("input.stream.name", Constants.getStreamName(stream)),
             new DrumHitReadingDeserializer(),
             sourceProperties);
-    /*
-    In order to work with event time, Flink needs to know the events timestamps,
-    meaning each element in the stream needs to have its event timestamp assigned.
-    This is usually done by accessing/extracting the timestamp from some field in
-    the element by using a TimestampAssigner.
-
-    Timestamp assignment goes hand-in-hand with generating watermarks,
-    which tell the system about progress in event time.
-    You can configure this by specifying a WatermarkGenerator.
-
-    The Flink API expects a WatermarkStrategy that contains both a
-    TimestampAssigner and WatermarkGenerator.
-
-    The simplest special case for periodic watermark generation is the case where
-    timestamps seen by a given source task occur in ascending order.
-    In that case, the current timestamp can always act as a watermark,
-    because no earlier timestamps will arrive.
-     */
-    drumHitReadingFlinkKinesisConsumer.setPeriodicWatermarkAssigner(
-        new AscendingTimestampExtractor<DrumHitReading>() {
-          @Override
-          public long extractAscendingTimestamp(DrumHitReading drumHitReading) {
-            return drumHitReading.getTimestamp();
-          }
-        });
 
     /*
     The Flink Kinesis Consumer optionally supports synchronization between
@@ -101,7 +75,6 @@ public class Kinesis {
     time skew related problems. To enable synchronization, set the watermark tracker
     on the consumer:
      */
-
     JobManagerWatermarkTracker watermarkTracker =
         new JobManagerWatermarkTracker(Constants.getStreamName(stream));
     drumHitReadingFlinkKinesisConsumer.setWatermarkTracker(watermarkTracker);
