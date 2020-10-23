@@ -190,7 +190,7 @@ def drumFromName(name):
         return crashcymbal
 
 
-def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0):
+def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0, stageName):
     #    start_count(pixels, blink_times = 1, color=GREEN)
     with open(yamlFile, 'r') as stream:
         try:
@@ -217,7 +217,7 @@ def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0):
                                 barItem = item.get("bar")
                                 for hit in barItem:
                                     processBar(
-                                        (beatCount % 8) + 1, hit, sessionId, tempo, duration, startTime)
+                                        (beatCount % 8) + 1, hit, sessionId, tempo, duration, startTime,stageName)
                                     beatCount += 1
                     elif(songPartKey == "bar"):
                         for item in songPartElement:
@@ -229,7 +229,7 @@ def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0):
             print(exc)
 
 
-def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, startTime=0):
+def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, startTime=0, stageName):
     hit = item.get("hit")
     combo = item.get("combo")
     sleep = float(float(60) / float(tempo))
@@ -237,7 +237,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
     drumList = []
     beatStart = time.time()
     if hit is not None:
-        blink_drums(pixels, [drumFromName(hit), metronome], sessionId)
+        blink_drums(pixels, [drumFromName(hit), metronome], sessionId, stageName)
         print("%d:  %s" % (beatCount, hit))
     else:
         comboString = ""
@@ -264,7 +264,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
         time.sleep(sleep)
 
 
-def readfile(file, sessionid, tempo=0.0, duration=30.0):
+def readfile(file, sessionid, tempo=0.0, duration=30.0, stageName):
     startTime = time.time()
     beat = float(float(60) / float(120))  # set a default of 120 beats a minute
     if (tempo > 0.0):
@@ -319,7 +319,7 @@ def readfile(file, sessionid, tempo=0.0, duration=30.0):
 
                     beatStart = time.time()
                     drumList.append(metronome)  # blink metronome to the tempo
-                    blink_drums(pixels, drumList, sessionid)
+                    blink_drums(pixels, drumList, sessionid, stageName)
                     # time.sleep(mido.tick2second(msg.time,mid.ticks_per_beat,mido.bpm2tempo(120)))
                     currentDuration = time.time() - startTime
                     print ("currentDuration:", currentDuration)
@@ -341,18 +341,7 @@ def readfile(file, sessionid, tempo=0.0, duration=30.0):
             break
 
 
-def blink_drum(pixels, drumList, sessionid, color=(255, 255, 255)):
-    pixels.clear()
-    for drum in drumList:
-        for k in range(drum[0], drum[1]):
-            pixels.set_pixel(k, Adafruit_WS2801.RGB_to_color(
-                color[0], color[1], color[2]))
-    pixels.show()
-    pixels.clear()
-    pixels.show()
-
-
-def sendReferenceData(sessionid, voltage, tz, epoch, drum):
+def sendReferenceData(sessionid, voltage, tz, epoch, drum, stageName):
     topicValue = "/song/reference"
     payloadData = {}
     payloadData['drum'] = drum.name
@@ -361,6 +350,7 @@ def sendReferenceData(sessionid, voltage, tz, epoch, drum):
     payloadData['timestamp'] = time.time_ns()
     payloadData['sessionId'] = sessionid
     payloadData['voltage'] = voltage
+    payloadData['stageName'] = stageName
     result = myMQTTClient.publish(
         topicValue,
         json.dumps(payloadData), 0)
@@ -383,12 +373,12 @@ def hitDrum(drum):
     print("drum "+drum.name+" counter="+str(drum.counter))
 
 
-def blink_drums(pixels, drumList, sessionid, voltage=0.0):
+def blink_drums(pixels, drumList, sessionid, voltage=0.0, stageName="Guest"):
     pixels.clear()
     tz = pytz.timezone('America/Chicago')
     epoch = datetime.fromtimestamp(0, tz)
     for drum in drumList:
-        sendReferenceData(sessionid, voltage, tz, epoch, drum)
+        sendReferenceData(sessionid, voltage, tz, epoch, drum, stageName)
         blinkDrum(drum)
         if(drum.name != 'metronome'):
             hitDrum(drum)
@@ -489,6 +479,7 @@ if __name__ == "__main__":
     sessionId = sys.argv[2]
     duration = float(sys.argv[3])
     overrideTempo = float(sys.argv[4])
+    stageName = sys.argv[5]
 
     # Clear all the pixels to turn them off.
     #subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
@@ -500,10 +491,10 @@ if __name__ == "__main__":
     #start_count(pixels, blink_times = 1, color=GREEN)
     mapDrums("drum-map.csv")
     if (fileToPlay.endswith(".mid")):
-        readfile(fileToPlay, sessionId, overrideTempo, duration)
+        readfile(fileToPlay, sessionId, overrideTempo, duration, stageName)
 
     if (fileToPlay.endswith('.yaml')):
-        playYaml(fileToPlay, sessionId, overrideTempo, duration)
+        playYaml(fileToPlay, sessionId, overrideTempo, duration, stageName)
 
     # for i in range(10):
     #subprocess.call(["/usr/bin/supervisorctl","start idlemode"])
