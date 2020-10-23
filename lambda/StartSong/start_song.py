@@ -86,8 +86,18 @@ def lambda_handler(event, context):
        sessionId = params['sessionId']
     else:
        sessionId = str(time.time())
-    
-    shadowJson =  '{"state":{"reported": { "play" : "%s", "sessionId": "%s", "duration" : "%s", "tempo" : %s} }}' % (songId,sessionId,duration,tempo)
+
+    if ('stageName' in params.keys()):
+        stageName = params['stageName']
+    else:
+        stageName = "Guest"
+
+    if ('startRecord' in params.keys()):
+        startRecord = params['startRecord']
+    else:
+        startRecord = "False"
+
+    shadowJson =  '{"state":{"reported": { "play" : "%s", "sessionId": "%s", "duration" : "%s", "tempo" : %s, "stageName" : %s, "startRecord" : %s} }}' % (songId,sessionId,duration,tempo,stageName,startRecord)
     print(shadowJson)
     
     myDeviceShadow.shadowUpdate(
