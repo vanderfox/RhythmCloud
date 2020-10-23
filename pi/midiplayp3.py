@@ -236,9 +236,9 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
     print("sleep=", str(sleep))
     drumList = []
     beatStart = time.time()
-    print("stageName in procsesBar:",stageName)
+    print("stageName in proccesBar:",stageName)
     if hit is not None:
-        blink_drums(pixels, [drumFromName(hit), metronome], sessionId, stageName)
+        blink_drums(pixels, [drumFromName(hit), metronome], sessionId, 0.0, stageName)
         print("%d:  %s" % (beatCount, hit))
     else:
         comboString = ""
@@ -246,7 +246,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
             comboString = comboString + drumHit.get("hit") + " "
             drumList.append(drumFromName(drumHit.get("hit")))
             drumList.append(metronome)  # blink metronome to the tempo
-            blink_drums(pixels, drumList, sessionId, stageName)
+            blink_drums(pixels, drumList, sessionId, 0.0, stageName)
             print("%d:  %s" % (beatCount, comboString))
     currentDuration = time.time() - startTime
     print ("currentDuration:", currentDuration)
@@ -320,7 +320,7 @@ def readfile(file, sessionid, tempo=0.0, duration=30.0, stageName="Guest"):
 
                     beatStart = time.time()
                     drumList.append(metronome)  # blink metronome to the tempo
-                    blink_drums(pixels, drumList, sessionid, stageName)
+                    blink_drums(pixels, drumList, sessionid, 0.0, stageName)
                     # time.sleep(mido.tick2second(msg.time,mid.ticks_per_beat,mido.bpm2tempo(120)))
                     currentDuration = time.time() - startTime
                     print ("currentDuration:", currentDuration)
