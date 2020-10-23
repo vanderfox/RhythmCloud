@@ -80,7 +80,7 @@ myMQTTClient.configureMQTTOperationTimeout(5)  # 5 s
 myMQTTClient.connect()
 topicValue = "/song/userHit"
 
-def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}):
+def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}, stageName = "Guest"):
         pixels.clear()
         tz = pytz.timezone('America/Chicago')
         epoch = datetime.fromtimestamp(0, tz)
@@ -94,6 +94,7 @@ def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}):
                 #payloadData['timestamp'] = (datetime.now(timezone('America/Chicago')) - epoch).total_seconds() * 1000.0 
                 payloadData['timestamp'] = time.time_ns()
                 payloadData['sessionId'] = sessionId
+                payloadData['stageName'] = stageName
 #                print("voltageDict:",voltageDict)
                 if (drum.name in voltageDict.keys()):
                   payloadData['voltage'] = voltageDict[drum.name]
@@ -143,10 +144,11 @@ def main():
     adc = ADCPi(0x68, 0x69, 12)
 
     sessionId = sys.argv[3]
+    stageName = sys.argv[4]
     print("SessionId:",sessionId)
     drumList =[]
     drumList.append(smallTom)
-    blink_drums(pixels, drumList,sessionId,{"smallTom":0.0666})
+    blink_drums(pixels, drumList,sessionId,{"smallTom":0.0666},stageName)
     duration = sys.argv[1]
     song = sys.argv[2]
     startTime = time.time()    
@@ -224,7 +226,7 @@ def main():
         except:
            print("Error reading voltage channel 8!")
         # wait 0.2 seconds before reading the pins again
-        blink_drums(pixels, drumList,sessionId,voltageDict)
+        blink_drums(pixels, drumList,sessionId,voltageDict,stageName)
 
         currentDuration = time.time() - startTime
         print ("currentDuration:",currentDuration)
