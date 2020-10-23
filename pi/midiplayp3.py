@@ -190,7 +190,7 @@ def drumFromName(name):
         return crashcymbal
 
 
-def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0, stageName):
+def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0, stageName="Guest"):
     #    start_count(pixels, blink_times = 1, color=GREEN)
     with open(yamlFile, 'r') as stream:
         try:
@@ -222,14 +222,14 @@ def playYaml(yamlFile, sessionId, overrideTempo=0, duration=30.0, stageName):
                     elif(songPartKey == "bar"):
                         for item in songPartElement:
                             processBar((beatCount % 8) + 1, item,
-                                       sessionId, tempo, duration, startTime)
+                                       sessionId, tempo, duration, startTime,stageName)
                             beatCount += 1
 
         except yaml.YAMLError as exc:
             print(exc)
 
 
-def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, startTime=0, stageName):
+def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, startTime=0, stageName="Guest"):
     hit = item.get("hit")
     combo = item.get("combo")
     sleep = float(float(60) / float(tempo))
@@ -245,7 +245,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
             comboString = comboString + drumHit.get("hit") + " "
             drumList.append(drumFromName(drumHit.get("hit")))
             drumList.append(metronome)  # blink metronome to the tempo
-            blink_drums(pixels, drumList, sessionId)
+            blink_drums(pixels, drumList, sessionId, stageName)
             print("%d:  %s" % (beatCount, comboString))
     currentDuration = time.time() - startTime
     print ("currentDuration:", currentDuration)
@@ -264,7 +264,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
         time.sleep(sleep)
 
 
-def readfile(file, sessionid, tempo=0.0, duration=30.0, stageName):
+def readfile(file, sessionid, tempo=0.0, duration=30.0, stageName="Guest"):
     startTime = time.time()
     beat = float(float(60) / float(120))  # set a default of 120 beats a minute
     if (tempo > 0.0):
@@ -480,7 +480,7 @@ if __name__ == "__main__":
     duration = float(sys.argv[3])
     overrideTempo = float(sys.argv[4])
     stageName = sys.argv[5]
-
+    print("stageName:",stageName)
     # Clear all the pixels to turn them off.
     #subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
     time.sleep(1)
