@@ -236,6 +236,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
     print("sleep=", str(sleep))
     drumList = []
     beatStart = time.time()
+    print("stageName in procsesBar:",stageName)
     if hit is not None:
         blink_drums(pixels, [drumFromName(hit), metronome], sessionId, stageName)
         print("%d:  %s" % (beatCount, hit))
@@ -342,6 +343,7 @@ def readfile(file, sessionid, tempo=0.0, duration=30.0, stageName="Guest"):
 
 
 def sendReferenceData(sessionid, voltage, tz, epoch, drum, stageName):
+    print("sendReferenceData:",stageName)
     topicValue = "/song/reference"
     payloadData = {}
     payloadData['drum'] = drum.name
@@ -374,6 +376,7 @@ def hitDrum(drum):
 
 
 def blink_drums(pixels, drumList, sessionid, voltage=0.0, stageName="Guest"):
+    print("blink_drums stageName:",stageName)
     pixels.clear()
     tz = pytz.timezone('America/Chicago')
     epoch = datetime.fromtimestamp(0, tz)
