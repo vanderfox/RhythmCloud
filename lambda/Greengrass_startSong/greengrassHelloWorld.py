@@ -36,7 +36,7 @@ def start_record_drums(sessionId, song = "/home/pi/song.mid", duration="30", sta
     print("start_record_drums for song:", song)
     print("start_record_drums for duration:", duration)
     try:
-       out = check_output(['/usr/bin/python','/home/pi/respondToHitCloud.py',str(duration),song,sessionId,stageName])
+       out = check_output(['/usr/bin/python3','/home/pi/respondToHitCloudp3.py',str(duration),song,sessionId,stageName])
        print("recording complete out:",out)
     except:
        print("Error running respondToHitCloud!")
@@ -101,7 +101,7 @@ def greengrass_hello_world_run(event,context):
             print("Error running record drums!")
 
         try:
-            out = check_output(['/usr/bin/python','/home/pi/midiplay.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
+            out = check_output(['/usr/bin/python3','/home/pi/midiplayp3.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
             print(out)
         except:
             print('Error running midiplay!')
