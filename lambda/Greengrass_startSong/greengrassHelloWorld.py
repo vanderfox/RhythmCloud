@@ -101,8 +101,9 @@ def greengrass_hello_world_run(event,context):
             print("Error running record drums!")
 
         try:
-            out = check_output(['/usr/bin/python3','/home/pi/midiplayp3.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
-            print(out)
+            if (startRecord == "False"):
+               out = check_output(['/usr/bin/python3','/home/pi/midiplayp3.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
+               print(out)
         except:
             print('Error running midiplay!')
 # start lambda for each instrument to start to listen and transmit to queue
