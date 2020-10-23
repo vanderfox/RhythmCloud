@@ -102,7 +102,7 @@ kickdrum = Drum(84, 134, RED, [35, 36], 'kickdrum', 131, 131)
 floortom = Drum(134, 173, BLUE, [41, 43, 45], 'floortom', 131, 132)
 ridecymbal = Drum(173, 179, WHITE, [51, 52, 55, 59], 'ridecymbal', 131, 131)
 highhat = Drum(179, 184, CYAN, [42, 46, 44], 'highhat', 131, 132)
-crashcymbal = Drum(184, 191, GREEN, [], 'crashcymbal', 131, 132)
+crashcymbal = Drum(184, 191, GREEN, [], 'crashcymbal', 131, 131)
 metronome = Drum(191, 195, DRKGREEN, [], 'metronome', 131, 132)
 
 
