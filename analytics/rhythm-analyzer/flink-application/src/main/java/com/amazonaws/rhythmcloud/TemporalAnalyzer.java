@@ -1,19 +1,20 @@
 package com.amazonaws.rhythmcloud;
 
 import com.amazonaws.rhythmcloud.domain.DrumHitReading;
-import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithType;
+import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithId;
 import com.amazonaws.rhythmcloud.io.BoundedOutOfOrdernessGenerator;
 import com.amazonaws.rhythmcloud.io.Kinesis;
+import com.amazonaws.rhythmcloud.process.SequenceDrumHitsKeyedProcessFunction;
 import com.amazonaws.services.kinesisanalytics.runtime.KinesisAnalyticsRuntime;
+import com.twitter.chill.protobuf.ProtobufSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
-import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.util.Map;
 import java.util.Properties;
@@ -46,6 +47,14 @@ public class TemporalAnalyzer {
       env.enableCheckpointing(
           5_000L, CheckpointingMode.EXACTLY_ONCE); // checkpoint every 5000L- 5 seconds
 
+      /*
+      Register the serializers
+       */
+      env.getConfig()
+          .registerTypeWithKryoSerializer(DrumHitReading.class, ProtobufSerializer.class);
+      env.getConfig()
+          .registerTypeWithKryoSerializer(DrumHitReadingWithId.class, ProtobufSerializer.class);
+
       Map<String, Properties> properties = KinesisAnalyticsRuntime.getApplicationProperties();
 
       /*
@@ -71,11 +80,15 @@ public class TemporalAnalyzer {
        */
       DataStream<DrumHitReading> systemHitSource =
           Kinesis.createSourceFromConfig(Constants.Stream.SYSTEMHIT, properties, env);
+      DataStream<DrumHitReading> userHitSource =
+          Kinesis.createSourceFromConfig(Constants.Stream.USERHIT, properties, env);
 
       // Assume events will be out of order because MQTT, AWS IoT Core does not
       // guarantee order of events
       SingleOutputStreamOperator<DrumHitReading> withTimestampAndWatermarkSystemHitSource =
           systemHitSource.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator());
+      SingleOutputStreamOperator<DrumHitReading> withTimestampAndWatermarkUserHitSource =
+          userHitSource.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator());
 
       // Isolate metronome beat
       SingleOutputStreamOperator<DrumHitReading> metronomeHitStream =
@@ -86,21 +99,33 @@ public class TemporalAnalyzer {
               .name("Metronome Stream");
 
       // Read the system hit stream without the metronome beat
-      // and stamp the data with system hit
-      SingleOutputStreamOperator<DrumHitReadingWithType> systemHitStream =
+      // Since the system hit and user hit have to be overlapped
+      // the window has to be shifted to the point where the user
+      // starts playing the drum. Though we could potentially use
+      // EventSessionWindow, we are choosing to roll our own
+      // window using the KeyedWindowProcess function.
+      SingleOutputStreamOperator<DrumHitReadingWithId> systemHitStream =
           withTimestampAndWatermarkSystemHitSource
               .filter(
                   (FilterFunction<DrumHitReading>)
                       drumHitReading -> (!drumHitReading.getDrum().equalsIgnoreCase("metronome")))
-              .map(
-                  hit ->
-                      new DrumHitReadingWithType(
-                          hit.getSessionId(),
-                          hit.getDrum(),
-                          hit.getTimestamp(),
-                          hit.getVoltage(),
-                          Constants.Stream.SYSTEMHIT))
+              .keyBy(DrumHitReading::getSessionId)
+              .process(
+                  new SequenceDrumHitsKeyedProcessFunction(
+                      Constants.Stream.SYSTEMHIT,
+                      TypeInformation.of(DrumHitReading.class).createSerializer(env.getConfig()),
+                      env.getConfig().isObjectReuseEnabled()))
               .name("System Hit Stream");
+
+      SingleOutputStreamOperator<DrumHitReadingWithId> userHitStream =
+          withTimestampAndWatermarkUserHitSource
+              .keyBy(DrumHitReading::getSessionId)
+              .process(
+                  new SequenceDrumHitsKeyedProcessFunction(
+                      Constants.Stream.USERHIT,
+                      TypeInformation.of(DrumHitReading.class).createSerializer(env.getConfig()),
+                      env.getConfig().isObjectReuseEnabled()))
+              .name("User Hit Stream");
 
       env.execute("Temporal Analyzer");
     } catch (Exception err) {
