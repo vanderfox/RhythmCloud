@@ -22,7 +22,7 @@ import java.util.PriorityQueue;
 
 @Slf4j
 public class SequenceDrumHitsKeyedProcessFunction
-    extends KeyedProcessFunction<Long, DrumHitReading, DrumHitReadingWithId> {
+    extends KeyedProcessFunction<String, DrumHitReading, DrumHitReadingWithId> {
   private static final String DRUM_HIT_QUEUE_STATE_NAME = "drumHitQueue";
   private static final String DRUM_HIT_SEQUENCE_STATE_NAME = "drumHitSequence";
 

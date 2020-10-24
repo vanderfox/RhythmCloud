@@ -109,7 +109,12 @@ public class TemporalAnalyzer {
               .filter(
                   (FilterFunction<DrumHitReading>)
                       drumHitReading -> (!drumHitReading.getDrum().equalsIgnoreCase("metronome")))
-              .keyBy(DrumHitReading::getSessionId)
+              .keyBy(
+                  drumHitReading ->
+                      String.format(
+                          "%d-%d",
+                          drumHitReading.getSessionId(),
+                          Constants.Stream.SYSTEMHIT.getStreamCode()))
               .process(
                   new SequenceDrumHitsKeyedProcessFunction(
                       Constants.Stream.SYSTEMHIT,
@@ -119,7 +124,11 @@ public class TemporalAnalyzer {
 
       SingleOutputStreamOperator<DrumHitReadingWithId> userHitStream =
           withTimestampAndWatermarkUserHitSource
-              .keyBy(DrumHitReading::getSessionId)
+              .keyBy(
+                  drumHitReading ->
+                      String.format(
+                          "%d-%d",
+                          drumHitReading.getSessionId(), Constants.Stream.USERHIT.getStreamCode()))
               .process(
                   new SequenceDrumHitsKeyedProcessFunction(
                       Constants.Stream.USERHIT,
