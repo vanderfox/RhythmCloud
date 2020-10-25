@@ -5,12 +5,14 @@ import com.amazonaws.rhythmcloud.domain.DrumHitReadingResult;
 import com.amazonaws.rhythmcloud.domain.DrumHitReadingWithId;
 import com.amazonaws.rhythmcloud.io.BoundedOutOfOrdernessGenerator;
 import com.amazonaws.rhythmcloud.io.Kinesis;
+import com.amazonaws.rhythmcloud.io.TimestreamPoint;
 import com.amazonaws.rhythmcloud.process.SequenceDrumHitsKeyedProcessFunction;
 import com.amazonaws.services.kinesisanalytics.runtime.KinesisAnalyticsRuntime;
 import com.twitter.chill.protobuf.ProtobufSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.JoinFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -20,6 +22,7 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import software.amazon.awssdk.services.timestreamwrite.model.MeasureValueType;
 
 import java.util.Map;
 import java.util.Properties;
@@ -162,6 +165,30 @@ public class TemporalAnalyzer {
                               system.getDrum().equalsIgnoreCase(user.getDrum()) ? 10L : 0L));
 
       resultDataStream.printToErr();
+
+      resultDataStream
+          .map(
+              (MapFunction<DrumHitReadingResult, TimestreamPoint>)
+                  drumHitReadingResult -> {
+                    TimestreamPoint timestreamPoint = new TimestreamPoint();
+                    timestreamPoint.setMeasureName("score");
+                    timestreamPoint.setMeasureValue(drumHitReadingResult.getScore().toString());
+                    timestreamPoint.setMeasureValueType(MeasureValueType.BIGINT);
+                    timestreamPoint.setTime(drumHitReadingResult.getUserTimestamp());
+                    timestreamPoint.setTimeUnit("NANOSECONDS");
+                    timestreamPoint.addDimension(
+                        "session_id", drumHitReadingResult.getSessionId().toString());
+                    timestreamPoint.addDimension(
+                        "sequence_id", drumHitReadingResult.getSequenceId().toString());
+                    timestreamPoint.addDimension(
+                        "system_drum", drumHitReadingResult.getSystemDrum());
+                    timestreamPoint.addDimension("user_drum", drumHitReadingResult.getUserDrum());
+                    timestreamPoint.addDimension(
+                        "voltage", drumHitReadingResult.getUserVoltage().toString());
+
+                    return timestreamPoint;
+                  })
+          .addSink(Kinesis.createTimeSinkFromConfig(Constants.Stream.TIMESTREAM, properties, env));
 
       env.execute("Temporal Analyzer");
     } catch (Exception err) {
