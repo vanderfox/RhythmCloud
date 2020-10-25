@@ -16,6 +16,9 @@ public class DrumHitReadingResult implements Serializable {
   @SerializedName("sessionId")
   private Long sessionId;
 
+  @SerializedName("sequenceId")
+  private Long sequenceId;
+
   @SerializedName("systemDrum")
   private String systemDrum;
 

@@ -153,6 +153,7 @@ public class TemporalAnalyzer {
                       (system, user) ->
                           new DrumHitReadingResult(
                               system.getSessionId(),
+                              system.getId(),
                               system.getDrum(),
                               user.getDrum(),
                               system.getTimestamp(),
