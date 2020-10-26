@@ -160,6 +160,17 @@ public class TemporalAnalyzerConstruct extends Construct {
             .propertyMap(userHitPropertyMap)
             .build();
 
+    Map<String, String> temporalAnalyzerPropertyMap = new HashMap<>();
+    temporalAnalyzerPropertyMap.put("aws.region", "us-east-1");
+    temporalAnalyzerPropertyMap.put(
+        "output.stream.name", props.getRhythmCloudAnalysisOutputStream().getName());
+    temporalAnalyzerPropertyMap.put("AggregationEnabled", "true");
+    CfnApplicationV2.PropertyGroupProperty temporalAnalyzerPropertyGroup =
+        CfnApplicationV2.PropertyGroupProperty.builder()
+            .propertyGroupId("TEMPORALANALYSIS")
+            .propertyMap(temporalAnalyzerPropertyMap)
+            .build();
+
     // CDK for timestream is not available yet
     // Manually create the resources and hard code the values here
     // TODO: Replace when CDK is available for timestream

@@ -164,7 +164,11 @@ public class TemporalAnalyzer {
                               user.getVoltage(),
                               system.getDrum().equalsIgnoreCase(user.getDrum()) ? 10L : 0L));
 
-      resultDataStream.printToErr();
+      resultDataStream
+          .map((MapFunction<DrumHitReadingResult, String>) DrumHitReadingResult::toString)
+          .addSink(
+              Kinesis.createKinesisSinkFromConfig(
+                  Constants.Stream.TEMPORALANALYSIS, properties, env));
 
       resultDataStream
           .map(
