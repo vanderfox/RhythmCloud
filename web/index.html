@@ -64,6 +64,9 @@
             <div class="max"></div>
           </div>
         </div>
+        <div class="col-md-12 delay_time_holder">
+          <input class="delay_time" value="0" type="number" min="0" max="10">
+        </div>
       </div>
       <div class="filter_body hide" data-type="upload" id="upload_body">
           <div class="col-md-6 control_col">
@@ -131,8 +134,6 @@
             </form>
           </div>
 
-
-
         </div>
       </div>
 
@@ -185,9 +186,7 @@
           {
             "targets": 4,
             "render": function ( data, type, row, meta ) {
-              var playLink = '<a class="dynamicControl" href="https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/playsong?songId='+row[1]+'&tempo=115&duration=-1">Play</a>';
-
-
+              var playLink = '<a class="dynamicControl" href="https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/playsong?songId='+row[1]+'&tempo=115&duration=30">Play</a>';
               return playLink
             }
           }
@@ -210,12 +209,7 @@
                  var replacements = [currentTempoValue, currentDurationValue ];
                  var new_query_string = replaceQueryString( old_addr_parts[1], tobereplaced, replacements );
                  $currentAnchorTag.attr('href',old_addr_parts[0] + '?' + new_query_string);
-
                });
-
-
-
-
              }
          },
 
@@ -225,10 +219,11 @@
             max: 255,
             value: 60,
             slide: function(event, ui) {
+              var el = event.currentTarget.activeElement;
               var delay = function() {
                   var handleIndex = $(ui.handle).data('index.uiSliderHandle');
                   var label = handleIndex == 0 ? '.min' : '.max';
-                  $(label).html(ui.value).position({
+                  $(el).parent().parent().find(label).html(ui.value).position({
                       my: 'center top',
                       at: 'center bottom',
                       of: ui.handle,
@@ -244,32 +239,23 @@
                     var replacements = [ui.value];
                     var new_query_string = replaceQueryString( old_addr_parts[1], tobereplaced, replacements );
                     $currentAnchorTag.attr('href',old_addr_parts[0] + '?' + new_query_string);
-
                   });
-
-
-
               };
-
               // wait for the ui.handle to set its position
               setTimeout(delay, 5);
-
-
-
-
-
             }
 
           });
 
           $( ".duration" ).slider({
             max: 300,
-            value: 0,
+            value: 30,
             slide: function(event, ui) {
+              var el = event.currentTarget.activeElement;
               var delay = function() {
                   var handleIndex = $(ui.handle).data('index.uiSliderHandle');
                   var label = handleIndex == 0 ? '.min' : '.max';
-                  $(label).html(ui.value).position({
+                  $(el).parent().parent().find(label).html(ui.value).position({
                       my: 'center top',
                       at: 'center bottom',
                       of: ui.handle,
@@ -288,8 +274,6 @@
 
                   });
 
-
-
               };
 
               // wait for the ui.handle to set its position
@@ -300,15 +284,61 @@
 
           });
 
+          $('a.dynamicControl').click(function(event){
+            event.preventDefault();
+            console.log('you clicked a link', event);
+            // count down to duration of 
+            console.log('HREF', event.currentTarget.attributes.href.value);
+            var duration = Number(event.currentTarget.attributes.href.value.split("duration=")[1]);
+            duration = duration + Number(document.querySelector('.delay_time').value); // Add 5 second buffer for API latency
+            $(event.target).after(`<div class="chosen_song">${duration}</div>`);
+            startCountdown(duration, '.chosen_song');
+            setTimeout(function() {
+              console.log('now relvealing');
+              $('.chosen_song').html(`<a class="myTurnControl" href="#">My Turn!</button>`);
+                $('.myTurnControl').click(function(e){
+                  e.preventDefault();
+                  $(e.target).after(`<div class="myTurnTimer">${duration}</div>`);
+                  startCountdown(duration, '.myTurnTimer');
+                  console.log('now relvealing myturn');
+                  // TODO: Make API Call to player song endpoint
+                  // TODO: Save results in variable and pass into generateModal
 
-
-
-
+                  setTimeout(function() {
+                    $('.myTurnTimer').hide();
+                    $('.chosen_song').html(`<div class="view_results">View Results</div>`);
+                    $('.view_results').click(function(e){
+                      modalGenerator('this is data from the score page');
+                    });
+                  },duration*1000);
+                });
+            }, duration*1000);
+          })
 
         }
 
     } );
 
+    function startCountdown(seconds, target) {
+      var countdown = setInterval(function() {
+        seconds--;
+        document.querySelector(target).textContent = seconds;
+        if (seconds <= 0) clearInterval(countdown);
+      }, 1000);
+    }
+
+    function modalGenerator(message) {
+      var divClass = 'messageBox';
+      var newDiv = document.createElement('div'); // create div element
+      newDiv.classList.add(divClass); // apply class for manipulation & styling
+      newDiv.innerHTML = `<div class="messageBoxInner">${message} <div class="close_modal">Close</div></div>`;
+      document.querySelector('.container').appendChild(newDiv); // render div at bottom of container
+
+      document.querySelector('.' + divClass +' .close_modal').addEventListener('click', function(){
+        document.querySelector('.container').removeChild(document.querySelector('.' + divClass));
+        console.log('now Im returning home');
+      });
+    }
 
 
 </script>

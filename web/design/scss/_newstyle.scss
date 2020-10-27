@@ -83,6 +83,7 @@ body {
       border: none;
       &:last-of-type {
         border-radius: 0 .5rem 0 0;
+        min-width: 250px;
       }
     }
     
@@ -98,7 +99,7 @@ body {
     background: white;
   }
 
-  .dynamicControl {
+  .dynamicControl, .myTurnControl {
     background: #2423c9;
     color: white;
     padding: .5rem 1rem;
@@ -109,6 +110,12 @@ body {
   }
 }
 
+.view_results {
+
+&:hover {
+  cursor: pointer;
+}
+}
 #song_filters {
   background: rgba(0, 0, 0, .5);
   padding: 0rem;
@@ -145,6 +152,9 @@ body {
   
   .max, .min {
     left: 0!important;
+  }
+  .max {
+    min-height: 24px;
   }
 }
 
@@ -246,4 +256,67 @@ body {
 
 #dashboard {
   margin-top: 2rem;
+}
+
+.chosen_song {
+  display: inline-block;
+  margin: 0 1rem;
+}
+
+.delay_time_holder {
+  text-align: right;
+  position: relative;
+  .delay_time {
+    background: transparent;
+    border: none;
+    position: absolute;
+    right: 15px;
+    text-align: center;
+  }
+}
+
+.myTurnTimer {
+  display: inline-block;
+  margin: 0 1rem;
+}
+
+.messageBox {
+  top: 20%;
+  position: fixed;
+  left: 50%;
+  z-index: 99;
+
+  &::after {
+    content: '';
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: -1;
+  }
+  
+  .messageBoxInner {
+    position: absolute;
+    padding: 20px;
+    left: calc(50% - 250px);
+    top: 100px;
+    width: 500px;
+    background: rgba(55, 86, 197, 85%);
+    color: white;
+    z-index: 1;
+    max-height: 500px;
+  }
+
+  .close_modal {
+    margin: 2rem -20px -20px;
+    background: black;
+    text-align: center;
+    padding: .5rem;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
 }
