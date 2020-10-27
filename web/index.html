@@ -288,8 +288,10 @@
           $('a.dynamicControl').click(function(event){
             event.preventDefault();
             console.log('HREF', event.currentTarget.attributes.href.value);
-            var duration = Number(event.currentTarget.attributes.href.value.split("duration=")[1]);
-            duration = duration + Number(document.querySelector('.delay_time').value); // Add 5 second buffer for API latency
+            // var duration = event.currentTarget.attributes.href.value.split("duration=")[1];
+            var duration = event.currentTarget.attributes.href.value.match(/duration=([0-9]{1,4})/)[1];
+            console.log('this is duration', duration)
+            duration = Number(duration) + Number(document.querySelector('.delay_time').value); // Add 5 second buffer for API latency
             $(event.target).after(`<div class="chosen_song">${duration}</div>`);
             startCountdown(duration, '.chosen_song');
             setTimeout(function() {
@@ -329,7 +331,7 @@
         console.log('this is the e change', $(this));
         var each_link = new URL($(this).attr('href'));
         each_link.searchParams.set("stageName",new_stage_name);
-        console.log('corrected URL', each_link)
+        console.log('corrected URL', each_link);
         $(this).attr('href', each_link);
       });
     });
