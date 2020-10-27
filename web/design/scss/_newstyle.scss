@@ -138,8 +138,14 @@ body {
   }
 }
 
-.control_col {
+.control_col { 
   display: inline-block;
+  position: relative;
+  vertical-align: top;
+  
+  .max, .min {
+    left: 0!important;
+  }
 }
 
 #song_library_wrapper {
