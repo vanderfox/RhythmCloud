@@ -58,7 +58,7 @@ console.log('online');
   });
 // });
 
-function replaceQueryString( queryString, keys, newValues ) {
+function replaceQueryString( queryString, keys, newValues, stageName ) {
   var parts = queryString.split('&');
 
   // We're going to make an array of querystring key=value strings
@@ -79,6 +79,10 @@ function replaceQueryString( queryString, keys, newValues ) {
           new_parts.push( parts[i] );
       }
   }
+  new_parts.push(`&stageName=${stageName}`);
+  console.log('this is what new_parts looks like', new_parts);
+
+  // parts += `&stageName=${stageName}`;
 
   // glue all the parts together and return them
   return new_parts.join('&');

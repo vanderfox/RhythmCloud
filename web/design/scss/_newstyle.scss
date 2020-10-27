@@ -272,12 +272,29 @@ body {
     position: absolute;
     right: 15px;
     text-align: center;
+    top: -2.8rem;
   }
 }
 
 .myTurnTimer {
   display: inline-block;
   margin: 0 1rem;
+}
+
+.stage_name_holder {
+  padding: 0 30px;
+  max-width: 200px;
+  display: inline-block;
+
+  .stage_name {
+    height: calc(1.5em + .5rem + 2px);
+    padding: .25rem .5rem;
+    font-size: .875rem;
+    line-height: 1.5;
+    border-radius: .2rem;
+    border: none;
+    margin-left: 0.5em;
+  }
 }
 
 .messageBox {
@@ -289,7 +306,7 @@ body {
   &::after {
     content: '';
     width: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(255,255,255,0.5);
     height: 100%;
     position: fixed;
     left: 0;
@@ -314,6 +331,7 @@ body {
     background: black;
     text-align: center;
     padding: .5rem;
+    font-weight: bold;
 
     &:hover {
       cursor: pointer;

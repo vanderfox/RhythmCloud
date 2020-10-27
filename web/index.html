@@ -48,7 +48,7 @@
         </h3>
       </div>
       <div class="filter_body" data-type="library">
-        <div class="col-md-5 control_col">
+        <div class="col-md-4 control_col">
           <div class="wrapper">
             <h5> Tempo (bpm): </h5>
             <div class="tempo"></div>
@@ -56,13 +56,16 @@
             <div class="max"></div>
           </div>
         </div>
-        <div class="col-md-5 control_col">
+        <div class="col-md-4 control_col">
           <div class="wrapper">
             <h5> Duration (seconds): </h5>
             <div class="duration"></div>
             <div class="min"></div>
             <div class="max"></div>
           </div>
+        </div>
+        <div class="col-md-2 stage_name_holder">
+          <label>Stage Name:<input class="stage_name" value="Demo User"></label>
         </div>
         <div class="col-md-12 delay_time_holder">
           <input class="delay_time" value="0" type="number" min="0" max="10">
@@ -186,7 +189,7 @@
           {
             "targets": 4,
             "render": function ( data, type, row, meta ) {
-              var playLink = '<a class="dynamicControl" href="https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/playsong?songId='+row[1]+'&tempo=115&duration=30">Play</a>';
+              var playLink = '<a class="dynamicControl" href="https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/playsong?songId='+row[1]+'&tempo=115&duration=30&stageName=Demo%20User">Play</a>';
               return playLink
             }
           }
@@ -278,16 +281,12 @@
 
               // wait for the ui.handle to set its position
               setTimeout(delay, 5);
-
-
             }
 
           });
 
           $('a.dynamicControl').click(function(event){
             event.preventDefault();
-            console.log('you clicked a link', event);
-            // count down to duration of 
             console.log('HREF', event.currentTarget.attributes.href.value);
             var duration = Number(event.currentTarget.attributes.href.value.split("duration=")[1]);
             duration = duration + Number(document.querySelector('.delay_time').value); // Add 5 second buffer for API latency
@@ -318,6 +317,22 @@
         }
 
     } );
+
+    $('.stage_name').change(function(event){
+      console.log('this is the event change', event);
+      var $myLinks = $('a.dynamicControl');
+      var new_stage_name = $('.stage_name').val();
+      new_stage_name = new_stage_name.replaceAll(' ', '%20');
+      console.log('is this stagename have spaces?',new_stage_name);
+      
+      $myLinks.each(function(e){
+        console.log('this is the e change', $(this));
+        var each_link = new URL($(this).attr('href'));
+        each_link.searchParams.set("stageName",new_stage_name);
+        console.log('corrected URL', each_link)
+        $(this).attr('href', each_link);
+      });
+    });
 
     function startCountdown(seconds, target) {
       var countdown = setInterval(function() {
