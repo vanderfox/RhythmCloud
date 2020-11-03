@@ -80,7 +80,7 @@ myMQTTClient.configureMQTTOperationTimeout(5)  # 5 s
 myMQTTClient.connect()
 topicValue = "/song/userHit"
 
-def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}):
+def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}, stageName = "Guest"):
         pixels.clear()
         tz = pytz.timezone('America/Chicago')
         epoch = datetime.fromtimestamp(0, tz)
@@ -91,19 +91,22 @@ def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}):
                 payloadData = {}
                 payloadData['drum'] = drum.name
 #                payloadData['timestamp'] = int(round(time.time() * 1000))
-                payloadData['timestamp'] = (datetime.now(timezone('America/Chicago')) - epoch).total_seconds() * 1000.0 
+                #payloadData['timestamp'] = (datetime.now(timezone('America/Chicago')) - epoch).total_seconds() * 1000.0 
+                payloadData['timestamp'] = time.time_ns()
                 payloadData['sessionId'] = sessionId
+                payloadData['stageName'] = stageName
 #                print("voltageDict:",voltageDict)
                 if (drum.name in voltageDict.keys()):
                   payloadData['voltage'] = voltageDict[drum.name]
                 else:
-                  payloadData['voltage'] = 0.0
+                  continue
+                  #payloadData['voltage'] = 0.0
 
                 result = myMQTTClient.publish(
                   topicValue,
                   json.dumps(payloadData), 0)
-                print("send message to queue result:")
-                print(result)
+                #print("send message to queue result:")
+                #print(result)
 
         pixels.show()
         pixels.clear()
@@ -141,10 +144,11 @@ def main():
     adc = ADCPi(0x68, 0x69, 12)
 
     sessionId = sys.argv[3]
+    stageName = sys.argv[4]
     print("SessionId:",sessionId)
     drumList =[]
     drumList.append(smallTom)
-    blink_drums(pixels, drumList,sessionId,{"smallTom":0.0666})
+    blink_drums(pixels, drumList,sessionId,{"smallTom":0.0666},stageName)
     duration = sys.argv[1]
     song = sys.argv[2]
     startTime = time.time()    
@@ -158,32 +162,32 @@ def main():
 
         try:
            voltage1 = adc.read_voltage(1)
-#        print("Channel 1: %02f" % voltage1)
-           if(voltage1 > 0.01):
+           print("Channel 1: %02f" % voltage1)
+           if(voltage1 > 0.05):
               drumList.append(highHat)
               voltageDict[highHat.name] = voltage1
         except:
            print("Error reading voltage channel 1!")
         try:
            voltage2 = adc.read_voltage(2)
-#        print("Channel 2: %02f" % voltage2)
-           if(voltage2 > 0.01):
+           print("Channel 2: %02f" % voltage2)
+           if(voltage2 > 0.05):
               drumList.append(crash)
               voltageDict[crash.name] = voltage2
         except:
            print("Error reading voltage channel 2!") 
         try:
            voltage3 = adc.read_voltage(3)
-#        print("Channel 3: %02f" % voltage3)
-           if(voltage3 > 0.01):
+           print("Channel 3: %02f" % voltage3)
+           if(voltage3 > 0.05):
               drumList.append(rideCymbal)
               voltageDict[rideCymbal.name] = voltage3
         except:
            print("Error reading voltage channel 3!")
         try:
            voltage4 = adc.read_voltage(4)
-#        print("Channel 4: %02f" % voltage4)
-           if(voltage4 > 0.02):
+           print("Channel 4: %02f" % voltage4)
+           if(voltage4 > 0.05):
               drumList.append(smallTom)
               voltageDict[smallTom.name] = voltage4
         except:
@@ -191,38 +195,38 @@ def main():
 
         try: 
            voltage5 = adc.read_voltage(5)
-#        print("Channel 5: %02f" % voltage5)
-           if(voltage5 > 0.02):
+           print("Channel 5: %02f" % voltage5)
+           if(voltage5 > 0.05):
               drumList.append(largeTom)
               voltageDict[largeTom.name] = voltage5
         except:
            print("Error reading voltage channel 5!")
         try:
-           voltage6 = adc.read_voltage(6)
-#        print("Channel 6: %02f" % voltage6)
-           if(voltage6 > 0.02):
-              drumList.append(snareDrum)
-              voltageDict[snaredrum.name] = voltage6
+          voltage6 = adc.read_voltage(6)
+          print("Channel 6: %02f" % voltage6)
+          if(voltage6 > 0.05):
+             drumList.append(snareDrum)
+             voltageDict[snareDrum.name] = voltage6
         except:
            print("Error reading voltage channel 6!")
         try:
            voltage7 = adc.read_voltage(7)
-#        print("Channel 7: %02f" % voltage7)
-           if(voltage7 > 0.02):
+           print("Channel 7: %02f" % voltage7)
+           if(voltage7 > 0.05):
               drumList.append(kickDrum)
               voltageDict[kickDrum.name] = voltage7
         except:
            print("Error reading voltage channel 7!")
         try:
            voltage8 = adc.read_voltage(8)
-#        print("Channel 8: %02f" % voltage8)
-           if(voltage8 > 0.02):
+           print("Channel 8: %02f" % voltage8)
+           if(voltage8 > 0.2):
               drumList.append(floorTom)
               voltageDict[floorTom.name] = voltage8
         except:
            print("Error reading voltage channel 8!")
         # wait 0.2 seconds before reading the pins again
-        blink_drums(pixels, drumList,sessionId,voltageDict)
+        blink_drums(pixels, drumList,sessionId,voltageDict,stageName)
 
         currentDuration = time.time() - startTime
         print ("currentDuration:",currentDuration)
