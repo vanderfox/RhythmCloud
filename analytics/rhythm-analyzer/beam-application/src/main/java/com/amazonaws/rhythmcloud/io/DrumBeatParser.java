@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.beam.sdk.io.kinesis.KinesisIO;
 import org.apache.beam.sdk.io.kinesis.KinesisRecord;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.values.KV;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 
@@ -65,7 +64,7 @@ public class DrumBeatParser {
    * be updated by using the record SequenceNumber and then, depending on runner implementation of
    * UnboundedSource and checkpoints processing, will be saved.
    */
-  public static class KinesisDrumBeatParser extends DoFn<KinesisRecord, KV<String, DrumBeat>> {
+  public static class KinesisDrumBeatParser extends DoFn<KinesisRecord, DrumBeat> {
     private static DrumBeat parseDrumBeatEvent(byte[] event) {
       try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(event))) {
         JsonReader jsonReader = new JsonReader(reader);
@@ -79,13 +78,10 @@ public class DrumBeatParser {
     }
 
     @ProcessElement
-    public void processElement(
-        @Element KinesisRecord record, OutputReceiver<KV<String, DrumBeat>> out) {
+    public void processElement(@Element KinesisRecord record, OutputReceiver<DrumBeat> out) {
       DrumBeat drumBeatEvent = parseDrumBeatEvent(record.getDataAsBytes());
-      log.warn("Successfully parsed Drum beat: {}", drumBeatEvent.toString());
-      out.outputWithTimestamp(
-          KV.<String, DrumBeat>of(record.getPartitionKey(), drumBeatEvent),
-          new Instant(drumBeatEvent.getTimestamp()));
+      log.debug("Successfully parsed Drum beat: {}", drumBeatEvent.toString());
+      out.output(drumBeatEvent);
     }
   }
 

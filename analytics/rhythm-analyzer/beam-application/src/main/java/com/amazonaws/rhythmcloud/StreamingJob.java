@@ -24,6 +24,8 @@ import com.amazonaws.rhythmcloud.io.DrumBeatParser;
 import com.amazonaws.rhythmcloud.io.LogSink;
 import com.amazonaws.rhythmcloud.process.MetronomeFilterFn;
 import com.amazonaws.rhythmcloud.process.Sequencer;
+import com.amazonaws.rhythmcloud.process.SessionStageKVFn;
+import com.amazonaws.rhythmcloud.process.TimestampAssignerFn;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.beam.runners.flink.FlinkRunner;
 import org.apache.beam.sdk.Pipeline;
@@ -35,8 +37,11 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.PipelineOptionsValidator;
 import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
+import org.apache.beam.sdk.transforms.windowing.Repeatedly;
+import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
-import org.apache.beam.sdk.values.PCollection;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.Duration;
 
@@ -82,38 +87,30 @@ public class StreamingJob {
         .registerCoderForClass(
             SequencedDrumBeat.class, SerializableCoder.of(SequencedDrumBeat.class));
 
-    PCollection<KV<String, DrumBeat>> withTimestampWithSessionSystemDrumBeats =
-        pipeline
-            .apply("System beat stream", DrumBeatParser.readSystemBeats(options))
-            .apply(
-                "Parse system drum beat events",
-                ParDo.of(new DrumBeatParser.KinesisDrumBeatParser()))
-            .setCoder(
-                KvCoder.of(
-                    StringUtf8Coder.of(), pipeline.getCoderRegistry().getCoder(DrumBeat.class)))
-            .apply("Filter out metronome beat", Filter.by(new MetronomeFilterFn()));
-
-    //    PCollection<KV<String, DrumBeat>> withTimestampWithSessionUserDrumBeats =
-    //        pipeline
-    //            .apply("User beat stream", DrumBeatParser.readUserBeats(options))
-    //            .apply(
-    //                "Parse user drum beat events", ParDo.of(new
-    // DrumBeatParser.KinesisDrumBeatParser()))
-    //            .apply(
-    //                Window.<KV<String, DrumBeat>>into(Sessions.withGapDuration(THIRTY_SECONDS))
-    //                    .withAllowedLateness(Duration.ZERO))
-    //            .setCoder(
-    //                KvCoder.of(
-    //                    StringUtf8Coder.of(),
-    // pipeline.getCoderRegistry().getCoder(DrumBeat.class)));
-
-    withTimestampWithSessionSystemDrumBeats
-        .apply("Sequence the stream", ParDo.of(new Sequencer()))
+    pipeline
+        .apply("System beat stream", DrumBeatParser.readSystemBeats(options))
+        .apply(
+            "Parse system drum beat events", ParDo.of(new DrumBeatParser.KinesisDrumBeatParser()))
+        .setCoder(pipeline.getCoderRegistry().getCoder(DrumBeat.class))
+        .apply("Filter out metronome beat", Filter.by(new MetronomeFilterFn()))
+        .apply("Assign Timestamp", ParDo.of(new TimestampAssignerFn()))
+        .apply("Create Key Value Pair", ParDo.of(new SessionStageKVFn()))
+        .setCoder(
+            KvCoder.of(StringUtf8Coder.of(), pipeline.getCoderRegistry().getCoder(DrumBeat.class)))
+        .apply(
+            "Windowing",
+            Window.<KV<String, DrumBeat>>into(new GlobalWindows())
+                .triggering(
+                    Repeatedly.forever(
+                        AfterProcessingTime.pastFirstElementInPane().plusDelayOf(THIRTY_SECONDS)))
+                .withAllowedLateness(Duration.ZERO)
+                .discardingFiredPanes())
+        .apply("Sequence the stream within the pane per key", ParDo.of(new Sequencer()))
         .setCoder(
             KvCoder.of(
                 StringUtf8Coder.of(),
                 pipeline.getCoderRegistry().getCoder(SequencedDrumBeat.class)))
-        .apply("Log sequenced drumbeat", ParDo.of(new LogSink.PrintToLogFn()));
+        .apply("Log", ParDo.of(new LogSink.PrintToLogFn()));
 
     pipeline.run().waitUntilFinish(Duration.millis(0));
   }

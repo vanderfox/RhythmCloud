@@ -9,6 +9,7 @@ import org.apache.beam.sdk.coders.VarIntCoder;
 import org.apache.beam.sdk.coders.VarLongCoder;
 import org.apache.beam.sdk.state.*;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.values.KV;
 
 import java.util.ArrayList;
@@ -34,11 +35,14 @@ public class Sequencer extends DoFn<KV<String, DrumBeat>, KV<String, SequencedDr
   @ProcessElement
   public void process(
       ProcessContext context,
+      BoundedWindow window,
       @StateId("map") MapState<Long, List<DrumBeat>> mapState,
       @TimerId("next") Timer nextTimer) {
     log.debug("Buffering event: {}", context.element().getValue().toString());
     bufferEvent(context.element(), mapState);
-    nextTimer.set(context.element().getValue().toJodaTime().plus(ALLOWED_LATENESS));
+    nextTimer.set(window.maxTimestamp());
+    log.info("Timer set for {}", window.maxTimestamp());
+    //    nextTimer.set(context.element().getValue().toJodaTime().plus(ALLOWED_LATENESS));
   }
 
   @OnTimer("next")
@@ -60,9 +64,10 @@ public class Sequencer extends DoFn<KV<String, DrumBeat>, KV<String, SequencedDr
     while (!sortedTimestamps.isEmpty()) {
       long timestamp = sortedTimestamps.poll();
       for (DrumBeat event : mapState.get(timestamp).read()) {
+        String key = String.format("%s-%s", event.getStageName(), event.getSessionId());
         KV<String, SequencedDrumBeat> sequencedDrumBeat =
             KV.of(
-                event.getSessionId(),
+                key,
                 new SequencedDrumBeat(
                     sequenceNumber + 1,
                     event.getSessionId(),
@@ -73,9 +78,9 @@ public class Sequencer extends DoFn<KV<String, DrumBeat>, KV<String, SequencedDr
         log.debug("Collecting {}", sequencedDrumBeat.getValue().toString());
         context.output(sequencedDrumBeat);
       }
-      mapState.clear();
-      sequenceState.write(sequenceNumber);
     }
+    mapState.clear();
+    sequenceState.write(sequenceNumber);
   }
 
   /**
