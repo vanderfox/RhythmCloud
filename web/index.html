@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="/design/js/DataTables/Scroller-2.0.1/css/scroller.bootstrap4.min.css">
   <script type="text/javascript" src="/design/js/DataTables/datatables.min.js"></script>
 
-  <title>RhythmCloud 1.0</title>
+  <title>RhythmCloud 2.0</title>
 </head>
 <body>
   <nav id="main_nav">
@@ -287,13 +287,27 @@
 
           $('a.dynamicControl').click(function(event){
             event.preventDefault();
+            $('.chosen_song').remove();
+
             console.log('HREF', event.currentTarget.attributes.href.value);
             // var duration = event.currentTarget.attributes.href.value.split("duration=")[1];
             var duration = event.currentTarget.attributes.href.value.match(/duration=([0-9]{1,4})/)[1];
             console.log('this is duration', duration)
             duration = Number(duration) + Number(document.querySelector('.delay_time').value); // Add 5 second buffer for API latency
-            $(event.target).after(`<div class="chosen_song">${duration}</div>`);
+            if ($(event.target).parent().find('.chosen_song').length > 0) {
+              $(event.target).parent().find('.chosen_song').html(`${duration}`)
+            } else {
+              $(event.target).after(`<div class="chosen_song">${duration}</div>`);
+            }
             startCountdown(duration, '.chosen_song');
+
+            let url = event.currentTarget.attributes.href.value;
+            let startRecord = `&startRecord=false`;
+            console.log('full URL', url + startRecord);
+            $.get(url + startRecord,function(response){
+              console.log('this is the response from the API', response);
+            });
+
             setTimeout(function() {
               console.log('now relvealing');
               $('.chosen_song').html(`<a class="myTurnControl" href="#">My Turn!</button>`);
@@ -304,6 +318,16 @@
                   console.log('now relvealing myturn');
                   // TODO: Make API Call to player song endpoint
                   // TODO: Save results in variable and pass into generateModal
+                  //  play startRecord=false
+                  // record startRecord=true 
+                  let url = event.currentTarget.attributes.href.value;
+                  let startRecord = `&startRecord=true`;
+                  console.log('full URL', url + startRecord);
+                  $.get(url + startRecord,function(response){
+                    console.log('this is the response from the API', response);
+                  });
+
+
 
                   setTimeout(function() {
                     $('.myTurnTimer').hide();
@@ -335,9 +359,11 @@
         $(this).attr('href', each_link);
       });
     });
-
+  
+    var countdown;
     function startCountdown(seconds, target) {
-      var countdown = setInterval(function() {
+      clearInterval(countdown);
+       countdown = setInterval(function() {
         seconds--;
         document.querySelector(target).textContent = seconds;
         if (seconds <= 0) clearInterval(countdown);
