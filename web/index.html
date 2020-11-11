@@ -302,7 +302,7 @@
             startCountdown(duration, '.chosen_song');
 
             let url = event.currentTarget.attributes.href.value;
-            let startRecord = `&startRecord=false`;
+            let startRecord = `&startRecord=False`;
             console.log('full URL', url + startRecord);
             $.get(url + startRecord,function(response){
               console.log('this is the response from the API', response);
@@ -321,7 +321,7 @@
                   //  play startRecord=false
                   // record startRecord=true 
                   let url = event.currentTarget.attributes.href.value;
-                  let startRecord = `&startRecord=true`;
+                  let startRecord = `&startRecord=True`;
                   console.log('full URL', url + startRecord);
                   $.get(url + startRecord,function(response){
                     console.log('this is the response from the API', response);
