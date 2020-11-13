@@ -1,0 +1,19 @@
+{
+  "name": "get-score",
+  "version": "1.0.0",
+  "description": "Calculates the score for a rhythm session from timestreamdb",
+  "main": "app.js",
+  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
+  "author": "Gandhinath Swaminathan",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0"
+  },
+  "scripts": {},
+  "devDependencies": {
+    "aws-sdk": "file:./aws-sdk",
+    "chai": "^4.2.0",
+    "minimist": "^1.2.5",
+    "mocha": "^6.1.4"
+  }
+}
