@@ -485,14 +485,14 @@ if __name__ == "__main__":
     stageName = sys.argv[5]
     print("stageName:",stageName)
     # Clear all the pixels to turn them off.
-    #subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
+    subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
     time.sleep(1)
 
     pixels.clear()
     pixels.show()  # Make sure to call show() after changing any pixels!
 
     #start_count(pixels, blink_times = 1, color=GREEN)
-    mapDrums("drum-map.csv")
+    mapDrums("/home/pi/drum-map.csv")
     if (fileToPlay.endswith(".mid")):
         readfile(fileToPlay, sessionId, overrideTempo, duration, stageName)
 
