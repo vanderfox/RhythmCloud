@@ -97,11 +97,20 @@ def lambda_handler(event, context):
     else:
         startRecord = "False"
 
-    shadowJson =  '{"state":{"reported": { "play" : "%s", "sessionId": "%s", "duration" : "%s", "tempo" : %s, "stageName" : %s, "startRecord" : %s} }}' % (songId,sessionId,duration,tempo,stageName,startRecord)
+    shadowJson =  '{"state":{"reported": { "play" : "%s", "sessionId": "%s", "duration" : "%s", "tempo" : "%s", "stageName" : "%s", "startRecord" : "%s"} }}' % (songId,sessionId,duration[0],tempo[0],stageName[0],startRecord)
     print(shadowJson)
     
     myDeviceShadow.shadowUpdate(
       shadowJson,
-      myShadowUpdateCallback, 5) 
-    return 'sent message to start song'
+      myShadowUpdateCallback, 5)
+    apiresponse = {
+        "statusCode": 200,
+        "headers": {
+            "content-type": "application/json"
+        },
+        "body": "sent message to start song",
+        "isBase64Encoded": False,
+    }
+    #return 'sent message to start song'
+    return apiresponse
 

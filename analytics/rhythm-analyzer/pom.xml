@@ -11,6 +11,7 @@
     <modules>
         <module>rhythym-deploy</module>
         <module>flink-application</module>
+        <module>beam-application</module>
     </modules>
 
 

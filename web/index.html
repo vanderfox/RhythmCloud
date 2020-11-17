@@ -1,302 +1,389 @@
 <!DOCTYPE html>
- <html class="no-js">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>RhythmCloud 1.0</title>
-        <meta name="description" content="">
-        <link rel="shortcut icon" href="/design/images/drum.jpg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-
-        <link rel="stylesheet" href="/design/css/main.css">
-        <link rel="stylesheet" href="/design/css/docs.min.css">
-
-
-
-        <link rel="stylesheet" href="/design/js/DataTables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css">
-        <link rel="stylesheet" href="/design/js/DataTables/Scroller-2.0.1/css/scroller.bootstrap4.min.css">
-
-        <link rel="stylesheet" href="/design/js/jqueryui/jquery-ui.css">
-        <script src="/design/js/jquery-3.3.1.min.js"></script>
-        <script src="/design/js/jqueryui/jquery-ui.min.js"></script>
-
-
-        <style>
-
-
-footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-
-  height: 60px;
-  line-height: 60px;
-  background-color: #f5f5f5;
-  z-index: 1000;
-}
-
-.bd-sidebar .nav>li>a {
-    display: block;
-    padding: .25rem 1.5rem;
-    font-size: 90%;
-    color: #FF9900;
-}
-
-a:hover {
-    color: #343a40 !important;
-    text-decoration: underline;
-}
-
-footer a:hover {
-    color: #FF9900 !important;
-    text-decoration: underline;
-}
-
-main{margin-top:15px;}
-
-.custom-select {background:none}
-.tempo,.duration  { margin: 5px; }
-
-
-.min, .max {
-    width: 5px;
-    font-size: 12px;
-    margin-bottom:0;
-    padding-bottom:0;
-    text-align: center;
-}
-.wrapper{height:70px;}
-
-
-.page-item.active .page-link {
-    z-index: 1;
-    color: #FF9900;
-    background-color: #343a40;
-    border-color: #343a40;
-}
-
-.page-link:hover {
-    z-index: 2;
-    color: #343a40 !important;
-    text-decoration: none;
-    background-color: #FF9900;
-    border-color: #FF9900;
-}
-</style>
-    </head>
-    <body>
-
-
-        <div class="d-flex flex-column flex-md-row align-items-center p-1 px-md-4 bg-white border-bottom shadow-sm w-100 nav-index">
-
-            <div class="container">
-
-                <div class="d-flex flex-column flex-md-row">
-
-                    <a href="/" class="my-0 mt-2 mr-md-auto font-weight-normal">
-                       <img src="/design/images/drum.jpg" height="65px" style="margin-left:50px">
-                       <!--image from: https://pixabay.com/vectors/drum-drum-club-christmas-1893996/ -->
-                    </a>
-
-                    <nav class="my-2 my-md-0 pt-2 text-center">
-
-                        <a class="p-2 text-uppercase text-dark  font-weight-bold" href="/">
-                          Home
-                        </a>
-
-
-
-                        <a  class="text-uppercase"
-                            href="/docs/index.html"
-                            id="navbarDocumentation"
-                            role="button"
-                            aria-haspopup="true" >
-                            Documentation
-                        </a>
-                        <a  class="text-uppercase"
-                            href="dashboard.html"
-                            id="navbarDocumentation"
-                            role="button"
-                            aria-haspopup="true" >
-                            Dashboard
-                        </a>
-
-                    </nav>
-
-                </div>
-
-            </div>
-        </div>
-        <!-- /.main nav bar -->
-
-
-
-
-  <div class="container">
-
-      <div class="row flex-xl-nowrap">
-
-
-        <!--left side nav-->
-        <div class='col-12 col-md-3 col-lg-3 col-xl-2 bd-sidebar'
-             id='leftsideNav'>
-
-            <form class='bd-search d-flex align-items-center d-md-none'>
-
-                <button class='btn btn-link bd-search-docs-toggle p-0 ml-3'
-                        type='button'
-                        data-toggle='collapse'
-                        data-target='#bd-docs-nav'
-                        aria-controls='bd-docs-nav'
-                        aria-expanded='false'
-                        aria-label='Toggle docs navigation'>
-                          <svg xmlns='http://www.w3.org/2000/svg'
-                               width='30'
-                               height='30'
-                               viewBox='0 0 30 30'
-                               role='img'
-                               focusable='false'>
-                                <title>Menu</title>
-                                <path stroke='currentColor'
-                                      stroke-linecap='round'
-                                      stroke-miterlimit='10'
-                                      stroke-width='2'
-                                      d='M4 7h22M4 15h22M4 23h22' />
-                          </svg>
-                  </button>
-
-            </form>
-
-
-            <nav class='collapse bd-links mt-md-4 pt-0'
-                 id='bd-docs-nav'>
-
-                <div class='bd-toc-item active'>
-
-                    <ul class='nav bd-sidenav'>
-
-
-
-                        <li class='bd-sidenav-active' >
-
-                          <a class='nav-link border-sidenav-li actionItem'
-                             href="list.html?v=a">
-                            Pick a song to play
-                          </a>
-
-                        </li>
-
-                        <li class='bd-sidenav-active' >
-
-                          <a class='nav-link border-sidenav-li actionItem'
-                             href="uploadSong.html?v=a">
-                            Upload a song
-                          </a>
-
-                        </li>
-
-
-
-                      </ul>
-                </div>
-
-            </nav>
-
-        </div>
-
-
-
-
-        <div class="col-md-9">
-
-
-          <main role="main">
-            <h1 style='color:#343a40 '>  RhythmCloud 1.0 Drum Learning System </h1>
-
-            <div id="responseTarget">
-
-            </div>
-            </br>
-            </br>
-            </br>
-            </br>
-
-
-          </main>
-
-
-
-        </div>
-
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="/design/images/favicon.png" />
+
+  <link rel="stylesheet" href="/design/scss/main.min.css">
+  <!-- <link rel="stylesheet" href="/design/css/docs.min.css"> -->
+  <link rel="stylesheet" href="/design/js/jqueryui/jquery-ui.css">
+  <script src="/design/js/jquery-3.3.1.min.js"></script>
+  <script src="/design/js/jqueryui/jquery-ui.min.js"></script>
+
+  <link rel="stylesheet" href="/design/js/DataTables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="/design/js/DataTables/Scroller-2.0.1/css/scroller.bootstrap4.min.css">
+  <script type="text/javascript" src="/design/js/DataTables/datatables.min.js"></script>
+
+  <title>RhythmCloud 2.0</title>
+</head>
+<body>
+  <nav id="main_nav">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="dashboard.html">Stats</a></li>
+    <li><a href="">About</a></li>
+    <li id="logo_nav"></li>
+    <li><a href="">Documentation</a></li>
+  </nav>
+
+  <div id="intro_block">
+    <div class="container">
+      <!-- <div class="intro_title">
+        RhythmCloud - Drum Learning System
+      </div> -->
+      <div class="intro_body">
+        RhythmCloud is a Drum Learning System. Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam assumenda vitae tempora culpa cumque ratione voluptatum deserunt ea. 
+        <a>Learn More</a>
       </div>
     </div>
-</main>
-
-
-<footer class="py-3 mb-0 bg-dark">
-    <div class="container">
-        <div class="row text-white">
-            <div class="col-md-6 text-md-left text-center">
-                &copy; 2019 RhythemCloud
-            </div>
-
-
-            <div class="col-md-6 text-md-right text-center">
-                <a href="https://aws.amazon.com/whitepapers/"
-                   target="_blank" class="text-white">
-                   AWS Whitepapers |
-                </a>
-
-                <a href="https://aws.amazon.com/iot/" target="_blank" class="text-white">
-                  AWS IoT |
-                </a>
-
-                <a href="https://www.raspberrypi.org/" target="_blank" class="text-white">
-                  Raspberry PI
-                </a>
-
-            </div>
+  </div>
+  <main class="container">
+    <div id="song_filters">
+      <div id="filter_header">
+        <h3 class='filter_section active' id="song_library_header" data-type="library">
+          RhythmCloud Song Library
+        </h3>
+        <h3 class='filter_section' id="upload_header" data-type="upload">
+          Upload a Song
+        </h3>
+      </div>
+      <div class="filter_body" data-type="library">
+        <div class="col-md-4 control_col">
+          <div class="wrapper">
+            <h5> Tempo (bpm): </h5>
+            <div class="tempo"></div>
+            <div class="min"></div>
+            <div class="max"></div>
+          </div>
         </div>
+        <div class="col-md-4 control_col">
+          <div class="wrapper">
+            <h5> Duration (seconds): </h5>
+            <div class="duration"></div>
+            <div class="min"></div>
+            <div class="max"></div>
+          </div>
+        </div>
+        <div class="col-md-2 stage_name_holder">
+          <label>Stage Name:<input class="stage_name" value="Demo User"></label>
+        </div>
+        <div class="col-md-12 delay_time_holder">
+          <input class="delay_time" value="0" type="number" min="0" max="10">
+        </div>
+      </div>
+      <div class="filter_body hide" data-type="upload" id="upload_body">
+          <div class="col-md-6 control_col">
+            <p class="minor">Please upload a midi (.mid) or beats (.yml) file with drum tracks inside.</p>
+          
+            <form class="needs-validation"
+              id="uploadMaSong"
+              method="post"
+              enctype="multipart/form-data"
+              action="https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/upload-song"
+              novalidate>
+  
+              <div class="form-group">
+                
+                <label for="songName" class="h5">
+                  Song name
+                </label>
+                
+                <input type="text"
+                name="songName"
+                class="form-control"
+                id="validationCustom01"
+                placeholder="Song Name"
+                value=""
+                required>
+                
+              </div>
+  
+              <div class="form-group">
+                
+                <label for="content" class="h5"> Upload </label>
+                
+                <div class="custom-file">
+                  
+                  <input type="file"
+                  class=" form-control custom-file-input"
+                  id="inputGroupFile01"
+                  aria-describedby="inputGroupFileAddon01"
+                  name="content" />
+                  
+                  <label class="custom-file-label" for="inputGroupFile01">
+                    Choose file
+                  </label>
+                  
+                  
+                  <input type="file"
+                  class="form-control custom-file-input"
+                  id="inputGroupFile01"
+                  name="content"
+                  aria-describedby="inputGroupFile01">
+                  
+                  <label class="custom-file-label" id="fileNameTarget" for="exampleInputFile" data-browse="Choose midi or beats file">
+                    Choose midi or beats file
+                  </label>
+                  
+                </div>
+                
+              </div>
+  
+              <button class="btn btn-primary btn-sm"
+              type="submit">
+              Submit form
+              </button>
+  
+            </form>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-</footer>
-
-      <script type="text/javascript" src="/design/js/DataTables/datatables.min.js"></script>
-      <script type="text/javascript" src="/design/js/DataTables/Scroller-2.0.1/js/scroller.bootstrap4.min.js"></script>
-
-      <script src="/design/js/bootstrap.bundle.min.js"></script>
-      <script src="/design/js/main.js?v=3"></script>
 
 
-      <script>
-      function replaceQueryString( queryString, keys, newValues ) {
-          var parts = queryString.split('&');
+    <div class="body_section" id="upload_body_section">
+      <div>Upload body goes here...</div>
+    </div>
+    <div class="show body_section" id="library_body_section">
+      <table id="song_library" class="display table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Song</th>
+                <th>id</th>
+                <th>file</th>
+                <th>Type</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+              <th>Song</th>
+              <th>id</th>
+              <th>file</th>
+              <th>Type</th>
+              <th>Action</th>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+  <div id="responseTarget"></div>
+  </main>
+  <script src="/design/js/bootstrap.bundle.min.js"></script>
+  <script src="/design/js/main2.js"></script>
+  <script type="text/javascript">
 
-          // We're going to make an array of querystring key=value strings
-          var new_parts = [];
+    $('#song_library').DataTable( {
 
-          for( i in parts ) {
-              var keyValue = parts[i].split('=');
-
-              // Use jQuery to see if this key is in our desired set
-              var replacePos = $.inArray(keyValue[0],keys);
-
-              // If it is, it will give a non-negative integer, if not it'll give -1
-              if( replacePos >= 0 )
-                  // We want to replace this key so make a new string for the key/value pair
-                  new_parts.push( keyValue[0] + '=' + newValues[replacePos] );
-              else {
-                  // This isn't the key we want to replace, so leave it alone
-                  new_parts.push( parts[i] );
-              }
+        "ajax": 'https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/song',
+        "paging": true,
+        deferRender:    true,
+        scroller:       true,
+        "columnDefs": [
+          {
+            "targets": [1,2],
+            "visible": false,
+            "searchable": false
+          },
+          {
+            "targets": 4,
+            "render": function ( data, type, row, meta ) {
+              var playLink = '<a class="dynamicControl" href="https://4v55eqpwo0.execute-api.us-east-1.amazonaws.com/Prod/playsong?songId='+row[1]+'&tempo=115&duration=30&stageName=Demo%20User">Play</a>';
+              return playLink
+            }
           }
+        ],
 
-          // glue all the parts together and return them
-          return new_parts.join('&');
-      }
+        "drawCallback": function( settings ) {
 
-      </script>
+             var sliderExists = $('.ui-slider').length;
+             if(sliderExists){
+
+               var currentTempoValue = $( ".tempo" ).slider("option", "value");
+               var currentDurationValue =  $( ".duration" ).slider("option", "value");
+
+               var $myLinks = $('a.dynamicControl');
+               $myLinks.each(function(){
+                 var $currentAnchorTag = $(this)
+                 var old_link = $currentAnchorTag.attr('href');
+                 var old_addr_parts = old_link.split('?');
+                 var tobereplaced = ['tempo','duration'];
+                 var replacements = [currentTempoValue, currentDurationValue ];
+                 var new_query_string = replaceQueryString( old_addr_parts[1], tobereplaced, replacements );
+                 $currentAnchorTag.attr('href',old_addr_parts[0] + '?' + new_query_string);
+               });
+             }
+         },
+
+        "initComplete": function(settings, json) {
+
+          $( ".tempo" ).slider({
+            max: 255,
+            value: 60,
+            slide: function(event, ui) {
+              var el = event.currentTarget.activeElement;
+              var delay = function() {
+                  var handleIndex = $(ui.handle).data('index.uiSliderHandle');
+                  var label = handleIndex == 0 ? '.min' : '.max';
+                  $(el).parent().parent().find(label).html(ui.value).position({
+                      my: 'center top',
+                      at: 'center bottom',
+                      of: ui.handle,
+                      offset: "0, 10"
+                  });
+
+                  var $myLinks = $('a.dynamicControl');
+                  $myLinks.each(function(){
+                    var $currentAnchorTag = $(this)
+                    var old_link = $currentAnchorTag.attr('href');
+                    var old_addr_parts = old_link.split('?');
+                    var tobereplaced = ['tempo'];
+                    var replacements = [ui.value];
+                    var new_query_string = replaceQueryString( old_addr_parts[1], tobereplaced, replacements );
+                    $currentAnchorTag.attr('href',old_addr_parts[0] + '?' + new_query_string);
+                  });
+              };
+              // wait for the ui.handle to set its position
+              setTimeout(delay, 5);
+            }
+
+          });
+
+          $( ".duration" ).slider({
+            max: 300,
+            value: 30,
+            slide: function(event, ui) {
+              var el = event.currentTarget.activeElement;
+              var delay = function() {
+                  var handleIndex = $(ui.handle).data('index.uiSliderHandle');
+                  var label = handleIndex == 0 ? '.min' : '.max';
+                  $(el).parent().parent().find(label).html(ui.value).position({
+                      my: 'center top',
+                      at: 'center bottom',
+                      of: ui.handle,
+                      offset: "0, 10"
+                  });
+
+                  var $myLinks = $('a.dynamicControl');
+                  $myLinks.each(function(){
+                    var $currentAnchorTag = $(this)
+                    var old_link = $currentAnchorTag.attr('href');
+                    var old_addr_parts = old_link.split('?');
+                    var tobereplaced = ['duration'];
+                    var replacements = [ui.value];
+                    var new_query_string = replaceQueryString( old_addr_parts[1], tobereplaced, replacements );
+                    $currentAnchorTag.attr('href',old_addr_parts[0] + '?' + new_query_string);
+
+                  });
+
+              };
+
+              // wait for the ui.handle to set its position
+              setTimeout(delay, 5);
+            }
+
+          });
+
+          $('a.dynamicControl').click(function(event){
+            event.preventDefault();
+            $('.chosen_song').remove();
+
+            console.log('HREF', event.currentTarget.attributes.href.value);
+            // var duration = event.currentTarget.attributes.href.value.split("duration=")[1];
+            var duration = event.currentTarget.attributes.href.value.match(/duration=([0-9]{1,4})/)[1];
+            console.log('this is duration', duration)
+            duration = Number(duration) + Number(document.querySelector('.delay_time').value); // Add 5 second buffer for API latency
+            if ($(event.target).parent().find('.chosen_song').length > 0) {
+              $(event.target).parent().find('.chosen_song').html(`${duration}`)
+            } else {
+              $(event.target).after(`<div class="chosen_song">${duration}</div>`);
+            }
+            startCountdown(duration, '.chosen_song');
+
+            let url = event.currentTarget.attributes.href.value;
+            let startRecord = `&startRecord=False`;
+            console.log('full URL', url + startRecord);
+            $.get(url + startRecord,function(response){
+              console.log('this is the response from the API', response);
+            });
+
+            setTimeout(function() {
+              console.log('now relvealing');
+              $('.chosen_song').html(`<a class="myTurnControl" href="#">My Turn!</button>`);
+                $('.myTurnControl').click(function(e){
+                  e.preventDefault();
+                  $(e.target).after(`<div class="myTurnTimer">${duration}</div>`);
+                  startCountdown(duration, '.myTurnTimer');
+                  console.log('now relvealing myturn');
+                  // TODO: Make API Call to player song endpoint
+                  // TODO: Save results in variable and pass into generateModal
+                  //  play startRecord=false
+                  // record startRecord=true 
+                  let url = event.currentTarget.attributes.href.value;
+                  let startRecord = `&startRecord=True`;
+                  console.log('full URL', url + startRecord);
+                  $.get(url + startRecord,function(response){
+                    console.log('this is the response from the API', response);
+                  });
 
 
-    </body>
+
+                  setTimeout(function() {
+                    $('.myTurnTimer').hide();
+                    $('.chosen_song').html(`<div class="view_results">View Results</div>`);
+                    $('.view_results').click(function(e){
+                      modalGenerator('this is data from the score page');
+                    });
+                  },duration*1000);
+                });
+            }, duration*1000);
+          })
+
+        }
+
+    } );
+
+    $('.stage_name').change(function(event){
+      console.log('this is the event change', event);
+      var $myLinks = $('a.dynamicControl');
+      var new_stage_name = $('.stage_name').val();
+      new_stage_name = new_stage_name.replaceAll(' ', '%20');
+      console.log('is this stagename have spaces?',new_stage_name);
+      
+      $myLinks.each(function(e){
+        console.log('this is the e change', $(this));
+        var each_link = new URL($(this).attr('href'));
+        each_link.searchParams.set("stageName",new_stage_name);
+        console.log('corrected URL', each_link);
+        $(this).attr('href', each_link);
+      });
+    });
+  
+    var countdown;
+    function startCountdown(seconds, target) {
+      clearInterval(countdown);
+       countdown = setInterval(function() {
+        seconds--;
+        document.querySelector(target).textContent = seconds;
+        if (seconds <= 0) clearInterval(countdown);
+      }, 1000);
+    }
+
+    function modalGenerator(message) {
+      var divClass = 'messageBox';
+      var newDiv = document.createElement('div'); // create div element
+      newDiv.classList.add(divClass); // apply class for manipulation & styling
+      newDiv.innerHTML = `<div class="messageBoxInner">${message} <div class="close_modal">Close</div></div>`;
+      document.querySelector('.container').appendChild(newDiv); // render div at bottom of container
+
+      document.querySelector('.' + divClass +' .close_modal').addEventListener('click', function(){
+        document.querySelector('.container').removeChild(document.querySelector('.' + divClass));
+        console.log('now Im returning home');
+      });
+    }
+
+
+</script>
+</body>
 </html>

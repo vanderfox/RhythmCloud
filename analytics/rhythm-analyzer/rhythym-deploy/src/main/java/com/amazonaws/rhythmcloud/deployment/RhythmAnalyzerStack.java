@@ -14,25 +14,27 @@ public class RhythmAnalyzerStack extends Stack {
     public RhythmAnalyzerStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
 
-        RhythymCloudFoundationProps rhythymCloudFoundationProps = RhythymCloudFoundationProps
-                .builder()
-                .setRhythmCloudArtifactsBucketArn("arn:aws:s3:::rhythm-cloud-artifacts")
-                .build();
-        RhythmCloudFoundationConstruct rhythmCloudFoundationConstruct = new RhythmCloudFoundationConstruct(this,
-                "rhythm-cloud-foundation-construct",
-                rhythymCloudFoundationProps);
+        RhythymCloudFoundationProps rhythymCloudFoundationProps =
+                RhythymCloudFoundationProps.builder()
+                        .setRhythmCloudArtifactsBucketArn("arn:aws:s3:::rhythm-cloud-artifacts-v1")
+                        .build();
+        RhythmCloudFoundationConstruct rhythmCloudFoundationConstruct =
+                new RhythmCloudFoundationConstruct(
+                        this, "rhythm-cloud-foundation-construct", rhythymCloudFoundationProps);
 
-        TemporalAnalyzerProps temporalAnalyzerProps = TemporalAnalyzerProps
-                .builder()
-                .setRhythmCloudArtifactsBucket(rhythmCloudFoundationConstruct.getRhythmCloudArtifactRepository())
-                .setRhythmCloudSystemHitStream(rhythmCloudFoundationConstruct.getRhythmCloudSystemHitStream())
-                .setRhythmCloudUserHitStream(rhythmCloudFoundationConstruct.getRhythmCloudUserHitStream())
-                .setRhythmCloudAnalysisOutputStream(rhythmCloudFoundationConstruct.getRhythmCloudAnalysisOutputStream())
-                .setContentPath("flink-application-0.1-SNAPSHOT.jar")
-                .build();
-        new TemporalAnalyzerConstruct(this,
-                "temporal-analyzer-construct",
-                temporalAnalyzerProps);
+        TemporalAnalyzerProps temporalAnalyzerProps =
+                TemporalAnalyzerProps.builder()
+                        .setRhythmCloudArtifactsBucket(
+                                rhythmCloudFoundationConstruct.getRhythmCloudArtifactRepository())
+                        .setRhythmCloudSystemHitStream(
+                                rhythmCloudFoundationConstruct.getRhythmCloudSystemHitStream())
+                        .setRhythmCloudUserHitStream(
+                                rhythmCloudFoundationConstruct.getRhythmCloudUserHitStream())
+                        .setRhythmCloudAnalysisOutputStream(
+                                rhythmCloudFoundationConstruct.getRhythmCloudAnalysisOutputStream())
+                        .setContentPath("flink-application-0.1-SNAPSHOT.jar")
+                        .build();
+        new TemporalAnalyzerConstruct(this, "temporal-analyzer-construct", temporalAnalyzerProps);
 
         CfnOutput.Builder.create(this, "rhythm-artifacts-s3-bucket")
                 .exportName("rhythm-artifacts-s3-bucket")

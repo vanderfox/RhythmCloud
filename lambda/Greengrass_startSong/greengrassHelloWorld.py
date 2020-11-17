@@ -33,6 +33,7 @@ s3 = boto3.resource('s3')
 def start_record_drums(sessionId, song = "/home/pi/song.mid", duration="30", stageName = "Guest"):
     print('function start_record_drum')
     print('start_record_drum for sessionId:', sessionId)
+    print('start_record_drums for stageName:',stageName)
     print("start_record_drums for song:", song)
     print("start_record_drums for duration:", duration)
     try:
@@ -95,14 +96,15 @@ def greengrass_hello_world_run(event,context):
         try:
             if (startRecord == "True"):
                 print("Starting recording session of drums")
-                drum1 = Process(target=start_record_drums, args=(sessionId,filename,duration))
+                drum1 = Process(target=start_record_drums, args=(sessionId,filename,duration,stageName))
                 drum1.start()
         except:
             print("Error running record drums!")
 
         try:
-            out = check_output(['/usr/bin/python3','/home/pi/midiplayp3.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
-            print(out)
+            if (startRecord == "False"):
+               out = check_output(['/usr/bin/python3','/home/pi/midiplayp3.py',"/home/pi/"+filename,sessionId,str(duration),str(tempo),stageName])
+               print(out)
         except:
             print('Error running midiplay!')
 # start lambda for each instrument to start to listen and transmit to queue
