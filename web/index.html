@@ -303,7 +303,9 @@
 
             let url = event.currentTarget.attributes.href.value;
             let startRecord = `&startRecord=false`;
-            console.log('full URL', url + startRecord);
+            let sessionidVal= `${$('.stage_name').val().replaceAll(' ', '%20')+new Date().getTime()}`
+            let sessionid= `&sessionid=${sessionidVal}`;
+            console.log('full URL', url + startRecord + sessionid);
             $.get(url + startRecord,function(response){
               console.log('this is the response from the API', response);
             });
@@ -318,22 +320,36 @@
                   console.log('now relvealing myturn');
                   // TODO: Make API Call to player song endpoint
                   // TODO: Save results in variable and pass into generateModal
-                  //  play startRecord=false
-                  // record startRecord=true 
+                  
                   let url = event.currentTarget.attributes.href.value;
                   let startRecord = `&startRecord=true`;
-                  console.log('full URL', url + startRecord);
-                  $.get(url + startRecord,function(response){
-                    console.log('this is the response from the API', response);
-                  });
-
-
+                  console.log('full URL', url + startRecord + sessionid);
+                  $.get(url + startRecord + sessionid,function(response){
+                    console.log('this is the response from the startRecord API', response);
+                  }).done(function(data){
+                    console.log('this is the record data in done', data)
+                  }).always(function(data){
+                    console.log('this is the data in always', data.responseText)
+                  })
 
                   setTimeout(function() {
                     $('.myTurnTimer').hide();
                     $('.chosen_song').html(`<div class="view_results">View Results</div>`);
                     $('.view_results').click(function(e){
-                      modalGenerator('this is data from the score page');
+                      let resultsURL = 'https://mirdwcrxwf.execute-api.us-east-1.amazonaws.com/Prod/getscore?sessionid=';
+                      console.log('full resultsURL',resultsURL+sessionidVal)
+                      $.get(resultsURL+sessionidVal,function(response){
+                        console.log('this is the response from the score API', response);
+                        let score_data = {
+                          "title": 'this is data from the score page',
+                          "data": response
+                        }
+                        modalGenerator(score_data);
+                      }).done(function(data){
+                        console.log('this is the score data in done', data)
+                      }).always(function(data){
+                        console.log('this is the score data in always', data.responseText)
+                      });
                     });
                   },duration*1000);
                 });
@@ -370,11 +386,11 @@
       }, 1000);
     }
 
-    function modalGenerator(message) {
+    function modalGenerator(data) {
       var divClass = 'messageBox';
       var newDiv = document.createElement('div'); // create div element
       newDiv.classList.add(divClass); // apply class for manipulation & styling
-      newDiv.innerHTML = `<div class="messageBoxInner">${message} <div class="close_modal">Close</div></div>`;
+      newDiv.innerHTML = `<div class="messageBoxInner"><div>${data.title}</div>${data.data} <div class="close_modal">Close</div></div>`;
       document.querySelector('.container').appendChild(newDiv); // render div at bottom of container
 
       document.querySelector('.' + divClass +' .close_modal').addEventListener('click', function(){
