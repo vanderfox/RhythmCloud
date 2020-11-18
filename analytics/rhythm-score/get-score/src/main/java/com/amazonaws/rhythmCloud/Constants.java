@@ -16,8 +16,8 @@ public class Constants {
           + TABLE_NAME
           + "\" "
           + "  WHERE session_id = '%s' AND hit_type = '"
-          + HIT_TYPES.SYSTEM
-          + "' AND measure_name='drum' "
+          + HIT_TYPES.SYSTEM.name().toLowerCase()
+          + "' AND measure_name='drum' AND drum <> 'metronome'"
           + "), "
           + "user AS( "
           + "  SELECT time, drum, ROW_NUMBER() OVER(PARTITION BY session_id ORDER BY time ASC) as sequence_id FROM \""
@@ -26,7 +26,7 @@ public class Constants {
           + TABLE_NAME
           + "\" "
           + "  WHERE session_id = '%s' AND hit_type = '"
-          + HIT_TYPES.USER
+          + HIT_TYPES.USER.name().toLowerCase()
           + "' AND measure_name='drum' "
           + "), "
           + "joined AS( "
