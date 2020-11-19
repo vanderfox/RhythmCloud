@@ -258,7 +258,7 @@ def processBar(beatCount=1, item=[], sessionId="123", tempo=120, duration=30.0, 
     if (currentDuration > float(duration) and duration > 0):
         print("end")
 #        myMQTTClient.disconnect()
-        # startidlemode()
+        startidlemode()
         closeSerials()
         sys.exit(0)
     if(sleepTime > 0.0):
@@ -485,14 +485,14 @@ if __name__ == "__main__":
     stageName = sys.argv[5]
     print("stageName:",stageName)
     # Clear all the pixels to turn them off.
-    #subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
+    subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
     time.sleep(1)
 
     pixels.clear()
     pixels.show()  # Make sure to call show() after changing any pixels!
 
     #start_count(pixels, blink_times = 1, color=GREEN)
-    mapDrums("drum-map.csv")
+    mapDrums("/home/pi/drum-map.csv")
     if (fileToPlay.endswith(".mid")):
         readfile(fileToPlay, sessionId, overrideTempo, duration, stageName)
 
@@ -500,5 +500,5 @@ if __name__ == "__main__":
         playYaml(fileToPlay, sessionId, overrideTempo, duration, stageName)
 
     # for i in range(10):
-    #subprocess.call(["/usr/bin/supervisorctl","start idlemode"])
+    subprocess.call(["/usr/bin/supervisorctl","start idlemode"])
     closeSerials()

@@ -18,32 +18,29 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class DrumHitReadingDeserializer extends AbstractDeserializationSchema<DrumHitReading> {
-    private static final Gson gson = new GsonBuilder()
-            .create();
+  private static final Gson gson = new GsonBuilder().create();
 
-    public DrumHitReading deserialize(byte[] bytes) throws IOException {
-        try {
-            JsonReader jsonReader = new JsonReader(
-                    new InputStreamReader(new ByteArrayInputStream(bytes)));
-            JsonElement jsonElement = Streams.parse(jsonReader);
-            DrumHitReading reading = gson.fromJson(jsonElement, DrumHitReading.class);
-            log.info("Successfully translated: {}", reading);
-            return reading;
-        } catch (Exception e) {
-            String s = new String(bytes, StandardCharsets.UTF_8);
-            log.error("cannot parse event '{}'", s, e);
-            throw new IOException(
-                    String.format("Cannot de-serialize %s", s),
-                    e);
-        }
+  public DrumHitReading deserialize(byte[] bytes) throws IOException {
+    try {
+      JsonReader jsonReader =
+          new JsonReader(new InputStreamReader(new ByteArrayInputStream(bytes)));
+      JsonElement jsonElement = Streams.parse(jsonReader);
+      DrumHitReading reading = gson.fromJson(jsonElement, DrumHitReading.class);
+      log.info("Successfully translated: {}", reading);
+      return reading;
+    } catch (Exception e) {
+      String s = new String(bytes, StandardCharsets.UTF_8);
+      log.error("cannot parse event '{}'", s, e);
+      throw new IOException(String.format("Cannot de-serialize %s", s), e);
     }
+  }
 
-    public boolean isEndOfStream(DrumHitReading event) {
-        return false;
-    }
+  public boolean isEndOfStream(DrumHitReading event) {
+    return false;
+  }
 
-    @Override
-    public TypeInformation<DrumHitReading> getProducedType() {
-        return TypeExtractor.getForClass(DrumHitReading.class);
-    }
+  @Override
+  public TypeInformation<DrumHitReading> getProducedType() {
+    return TypeExtractor.getForClass(DrumHitReading.class);
+  }
 }

@@ -302,10 +302,12 @@
             startCountdown(duration, '.chosen_song');
 
             let url = event.currentTarget.attributes.href.value;
-            let startRecord = `&startRecord=false`;
+
+            let startRecord = `&startRecord=False`;
             let sessionidVal= `${$('.stage_name').val().replaceAll(' ', '%20')+new Date().getTime()}`
             let sessionid= `&sessionid=${sessionidVal}`;
             console.log('full URL', url + startRecord + sessionid);
+
             $.get(url + startRecord,function(response){
               console.log('this is the response from the API', response);
             });
@@ -322,7 +324,8 @@
                   // TODO: Save results in variable and pass into generateModal
                   
                   let url = event.currentTarget.attributes.href.value;
-                  let startRecord = `&startRecord=true`;
+
+                  let startRecord = `&startRecord=True`;
                   console.log('full URL', url + startRecord + sessionid);
                   $.get(url + startRecord + sessionid,function(response){
                     console.log('this is the response from the startRecord API', response);
@@ -331,6 +334,13 @@
                   }).always(function(data){
                     console.log('this is the data in always', data.responseText)
                   })
+
+                  let startRecord = `&startRecord=True`;
+                  console.log('full URL', url + startRecord);
+                  $.get(url + startRecord,function(response){
+                    console.log('this is the response from the API', response);
+                  });
+
 
                   setTimeout(function() {
                     $('.myTurnTimer').hide();

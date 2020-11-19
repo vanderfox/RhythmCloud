@@ -16,6 +16,7 @@ from datetime import datetime
 import pytz
 from tzlocal import get_localzone
 from pytz import timezone
+import subprocess
 
 # set global colors
 WHITE = (255, 255, 255)
@@ -88,25 +89,20 @@ def blink_drums(pixels, drumList, sessionId = "none", voltageDict = {}, stageNam
         for drum in drumList:
             for k in range(drum.startLED, drum.endLED):
                 pixels.set_pixel(k, Adafruit_WS2801.RGB_to_color( drum.color[0], drum.color[1], drum.color[2] ))
-                payloadData = {}
-                payloadData['drum'] = drum.name
-#                payloadData['timestamp'] = int(round(time.time() * 1000))
-                #payloadData['timestamp'] = (datetime.now(timezone('America/Chicago')) - epoch).total_seconds() * 1000.0 
-                payloadData['timestamp'] = time.time_ns()
-                payloadData['sessionId'] = sessionId
-                payloadData['stageName'] = stageName
-#                print("voltageDict:",voltageDict)
-                if (drum.name in voltageDict.keys()):
-                  payloadData['voltage'] = voltageDict[drum.name]
-                else:
-                  continue
-                  #payloadData['voltage'] = 0.0
+            payloadData = {}
+            payloadData['drum'] = drum.name
+            payloadData['timestamp'] = time.time_ns()
+            payloadData['sessionId'] = sessionId
+            payloadData['stageName'] = stageName
+            print("voltageDict:",voltageDict)
+            if (drum.name in voltageDict.keys()):
+               payloadData['voltage'] = voltageDict[drum.name]
+            else:
+               continue
 
-                result = myMQTTClient.publish(
-                  topicValue,
-                  json.dumps(payloadData), 0)
-                #print("send message to queue result:")
-                #print(result)
+            result = myMQTTClient.publish(
+                 topicValue,
+                 json.dumps(payloadData), 0)
 
         pixels.show()
         pixels.clear()
@@ -140,12 +136,13 @@ def main():
     '''
     Main program function
     '''
-
+    subprocess.call(["/usr/bin/supervisorctl", "stop idlemode"])
     adc = ADCPi(0x68, 0x69, 12)
-
+    #adc1 = ADCPi(0x6A, 0x6B, 12)
     sessionId = sys.argv[3]
     stageName = sys.argv[4]
     print("SessionId:",sessionId)
+    print("StageName:",stageName)
     drumList =[]
     drumList.append(smallTom)
     blink_drums(pixels, drumList,sessionId,{"smallTom":0.0666},stageName)
@@ -162,67 +159,83 @@ def main():
 
         try:
            voltage1 = adc.read_voltage(1)
-           print("Channel 1: %02f" % voltage1)
            if(voltage1 > 0.05):
               drumList.append(highHat)
               voltageDict[highHat.name] = voltage1
+              print("Channel 1 (hihat): %02f" % voltage1)
+           else:
+              print("Channel 1 (hihat): no hit")
         except:
            print("Error reading voltage channel 1!")
         try:
            voltage2 = adc.read_voltage(2)
-           print("Channel 2: %02f" % voltage2)
            if(voltage2 > 0.05):
               drumList.append(crash)
               voltageDict[crash.name] = voltage2
+              print("Channel 2 (Crash Cymbal): %02f" % voltage2)
+           else:
+              print("Channel 2 (Crash Cymbal): no hit")
         except:
            print("Error reading voltage channel 2!") 
         try:
            voltage3 = adc.read_voltage(3)
-           print("Channel 3: %02f" % voltage3)
            if(voltage3 > 0.05):
               drumList.append(rideCymbal)
               voltageDict[rideCymbal.name] = voltage3
+              print("Channel 3 (Ride Cymbal): %02f" % voltage3)
+           else:
+              print("Channel 3 (Ride Cymbal): no hit")
         except:
            print("Error reading voltage channel 3!")
         try:
            voltage4 = adc.read_voltage(4)
-           print("Channel 4: %02f" % voltage4)
            if(voltage4 > 0.05):
               drumList.append(smallTom)
               voltageDict[smallTom.name] = voltage4
+              print("Channel 4 (Small Tom): %02f" % voltage4)
+           else:
+              print("Channel 4 (Small Tom): no hit")
         except:
            print("Error reading voltage channel 4!")
 
         try: 
            voltage5 = adc.read_voltage(5)
-           print("Channel 5: %02f" % voltage5)
            if(voltage5 > 0.05):
               drumList.append(largeTom)
               voltageDict[largeTom.name] = voltage5
+              print("Channel 5 (Large Tom): %02f" % voltage5)
+           else:
+              print("Channel 5 (Large Tom): no hit")
         except:
            print("Error reading voltage channel 5!")
         try:
           voltage6 = adc.read_voltage(6)
-          print("Channel 6: %02f" % voltage6)
           if(voltage6 > 0.05):
              drumList.append(snareDrum)
              voltageDict[snareDrum.name] = voltage6
+             print("Channel 6 (Snare Drum): %02f" % voltage6)
+          else:
+             print("Channel 6 (Snare Drum): no hit")
         except:
            print("Error reading voltage channel 6!")
         try:
            voltage7 = adc.read_voltage(7)
-           print("Channel 7: %02f" % voltage7)
            if(voltage7 > 0.05):
               drumList.append(kickDrum)
               voltageDict[kickDrum.name] = voltage7
+              print("Channel 7 (Kick Drum): %02f" % voltage7)
+           else:
+              print("Channel 7 (Kick Drum): no hit")
         except:
            print("Error reading voltage channel 7!")
         try:
            voltage8 = adc.read_voltage(8)
-           print("Channel 8: %02f" % voltage8)
-           if(voltage8 > 0.2):
+           if(voltage8 > 0.05):
               drumList.append(floorTom)
               voltageDict[floorTom.name] = voltage8
+              print("Channel 8 (Floor Tom): %02f" % voltage8)
+           else:
+              print("Channel 8 (Floor Tom): no hit")
         except:
            print("Error reading voltage channel 8!")
         # wait 0.2 seconds before reading the pins again
@@ -234,6 +247,7 @@ def main():
         if (currentDuration > float(duration)):
             print("end")
 #            myMQTTClient.disconnect()
+            subprocess.call(["/usr/bin/supervisorctl", "start idlemode"])
             sys.exit(0) 
 
         time.sleep(0.1)

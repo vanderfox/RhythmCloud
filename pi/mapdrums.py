@@ -81,7 +81,7 @@ with open(filename, 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
 	for x in range(1, 9):
 		counter += 1
-        	delay = 0.5
+        	delay = 0.7
 		drum = probeDrum(counter, eval("ser"+str(x)), delay)
         	print("ser"+str(x)+"is "+drum)
                 csvwriter.writerow([drum,"ser"+str(x)])
