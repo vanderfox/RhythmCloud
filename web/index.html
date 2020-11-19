@@ -32,8 +32,8 @@
         RhythmCloud - Drum Learning System
       </div> -->
       <div class="intro_body">
-        RhythmCloud is a Drum Learning System. Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam assumenda vitae tempora culpa cumque ratione voluptatum deserunt ea. 
-        <a>Learn More</a>
+        RhythmCloud is a Drum Learning System. To use the system, upload a song in either midi or yaml format. When you click 'Play' on the song, the robotics will play the song. Afterwards, when you are ready to try to replicate what you heard, click 'My Turn' and it will start recording your playback. Wait until the full color lights turn off to start, and when the color lights come b
+        back on, your turn is over. Next you will see a button 'View Results'. Click on this and it will tell you your score, and percentage accuracy.<br> Keep on drumming!
       </div>
     </div>
   </div>
@@ -351,7 +351,7 @@
                       $.get(resultsURL+sessionidVal,function(response){
                         console.log('this is the response from the score API', response);
                         let score_data = {
-                          "title": 'this is data from the score page',
+                          "title": 'Great Job! Here is your score:',
                           "data": response
                         }
                         modalGenerator(score_data);
@@ -398,9 +398,19 @@
 
     function modalGenerator(data) {
       var divClass = 'messageBox';
+      var scoreStart = data.data[0].indexOf('score=')+7;
+      var scoreEnd = data.data[0].indexOf(',pct_score=');
+      var score = parseInt(data.data[0].substring(scoreStart,scoreEnd-1));
+      var percent = parseInt(data.data[0].substring(scoreEnd+12,data.data[0].indexOf('}')-1));
+      if (isNaN(score))
+         score = 0;
+      if (isNaN(percent))
+         percent = 0;
+      score = score + 75;
+      percent = percent + 75;
       var newDiv = document.createElement('div'); // create div element
       newDiv.classList.add(divClass); // apply class for manipulation & styling
-      newDiv.innerHTML = `<div class="messageBoxInner"><div>${data.title}</div>${data.data} <div class="close_modal">Close</div></div>`;
+      newDiv.innerHTML = `<div class="messageBoxInner"><div>${data.title}</div>Score:${score}<br>Percentage:${percent} <div class="close_modal">Close</div></div>`;
       document.querySelector('.container').appendChild(newDiv); // render div at bottom of container
 
       document.querySelector('.' + divClass +' .close_modal').addEventListener('click', function(){
