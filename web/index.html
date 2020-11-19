@@ -305,10 +305,10 @@
 
             let startRecord = `&startRecord=False`;
             let sessionidVal= `${$('.stage_name').val().replaceAll(' ', '%20')+new Date().getTime()}`
-            let sessionid= `&sessionid=${sessionidVal}`;
+            let sessionid= `&sessionId=${sessionidVal}`;
             console.log('full URL', url + startRecord + sessionid);
 
-            $.get(url + startRecord,function(response){
+            $.get(url + startRecord + sessionid,function(response){
               console.log('this is the response from the API', response);
             });
 
@@ -335,9 +335,9 @@
                     console.log('this is the data in always', data.responseText)
                   })
 
-                  let startRecord = `&startRecord=True`;
+                  //let startRecord = `&startRecord=True`;
                   console.log('full URL', url + startRecord);
-                  $.get(url + startRecord,function(response){
+                  $.get(url + startRecord + sessionid,function(response){
                     console.log('this is the response from the API', response);
                   });
 
