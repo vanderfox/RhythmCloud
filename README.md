@@ -7,3 +7,4 @@ This project is broken into its components as follows:
 - web: this is the static html files for the web UI
 - lambda: lambda functions for UI and Greengrass
 - esp32s: code for flashing individual drum controllers
+- Build documentation - https://public-ryan.s3.amazonaws.com/RhythmCloudv2BuildInstructions.pdf
